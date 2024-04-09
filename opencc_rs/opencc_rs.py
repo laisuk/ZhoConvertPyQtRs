@@ -22,9 +22,6 @@ class OpenCC:
     lib.opencc_new.argtypes = []
     lib.opencc_convert.restype = ctypes.c_char_p
     lib.opencc_convert.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_char_p, ctypes.c_bool]
-    lib.opencc_get_parallel.restype = ctypes.c_bool
-    lib.opencc_get_parallel.argtypes = [ctypes.c_void_p]
-    lib.opencc_set_parallel.argtypes = [ctypes.c_void_p, ctypes.c_bool]
     lib.opencc_zho_check.restype = ctypes.c_int
     lib.opencc_zho_check.argtypes = [ctypes.c_void_p, ctypes.c_char_p]
     lib.opencc_free.argtypes = [ctypes.c_void_p]
