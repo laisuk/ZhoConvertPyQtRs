@@ -1,7 +1,15 @@
 import ctypes
 import os
+import platform
 
-DLL_FILE = 'opencc_fmmseg_capi.dll'
+# Determine the DLL file based on the operating system
+if platform.system() == 'Windows':
+    DLL_FILE = 'opencc_fmmseg_capi.dll'
+elif platform.system() == 'Linux':
+    DLL_FILE = 'libopencc_fmmseg_capi.so'
+else:
+    raise OSError("Unsupported operating system")
+
 CONFIG_LIST = [
     "s2t", "t2s", "s2tw", "tw2s", "s2twp", "tw2sp", "s2hk", "hk2s", "t2tw", "tw2t", "t2twp", "tw2t", "tw2tp",
     "t2hk", "hk2t", "t2jp", "jp2t"
