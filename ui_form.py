@@ -17,11 +17,11 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QPainter, QPalette, QPixmap, QRadialGradient,
     QTransform)
 from PySide6.QtWidgets import (QAbstractItemView, QApplication, QButtonGroup, QCheckBox,
-    QFrame, QHBoxLayout, QLabel, QLineEdit,
-    QListWidgetItem, QMainWindow, QMenu, QMenuBar,
-    QPlainTextEdit, QPushButton, QRadioButton, QSizePolicy,
-    QSpacerItem, QStatusBar, QTabWidget, QVBoxLayout,
-    QWidget)
+    QComboBox, QFrame, QHBoxLayout, QLabel,
+    QLineEdit, QListWidgetItem, QMainWindow, QMenu,
+    QMenuBar, QPlainTextEdit, QPushButton, QRadioButton,
+    QSizePolicy, QSpacerItem, QStatusBar, QTabWidget,
+    QVBoxLayout, QWidget)
 
 from custom_widgets import (DragListWidget, TextEditWidget)
 import resource_rc
@@ -62,6 +62,39 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_config.addWidget(self.rbT2s, 0, Qt.AlignHCenter)
 
+        self.rbManual = QRadioButton(self.centralwidget)
+        self.buttonGroup_config.addButton(self.rbManual)
+        self.rbManual.setObjectName(u"rbManual")
+        self.rbManual.setMaximumSize(QSize(150, 16777215))
+        self.rbManual.setFont(font)
+
+        self.horizontalLayout_config.addWidget(self.rbManual)
+
+        self.cbManual = QComboBox(self.centralwidget)
+        self.cbManual.addItem("")
+        self.cbManual.addItem("")
+        self.cbManual.addItem("")
+        self.cbManual.addItem("")
+        self.cbManual.addItem("")
+        self.cbManual.addItem("")
+        self.cbManual.addItem("")
+        self.cbManual.addItem("")
+        self.cbManual.addItem("")
+        self.cbManual.addItem("")
+        self.cbManual.addItem("")
+        self.cbManual.addItem("")
+        self.cbManual.addItem("")
+        self.cbManual.addItem("")
+        self.cbManual.addItem("")
+        self.cbManual.addItem("")
+        self.cbManual.setObjectName(u"cbManual")
+        self.cbManual.setMaximumSize(QSize(180, 16777215))
+        font1 = QFont()
+        font1.setPointSize(11)
+        self.cbManual.setFont(font1)
+
+        self.horizontalLayout_config.addWidget(self.cbManual)
+
 
         self.verticalLayout_3.addLayout(self.horizontalLayout_config)
 
@@ -74,9 +107,9 @@ class Ui_MainWindow(object):
         self.buttonGroup_region.setObjectName(u"buttonGroup_region")
         self.buttonGroup_region.addButton(self.rbStd)
         self.rbStd.setObjectName(u"rbStd")
-        font1 = QFont()
-        font1.setPointSize(10)
-        self.rbStd.setFont(font1)
+        font2 = QFont()
+        font2.setPointSize(10)
+        self.rbStd.setFont(font2)
         self.rbStd.setChecked(False)
 
         self.horizontalLayout_region.addWidget(self.rbStd, 0, Qt.AlignHCenter)
@@ -84,7 +117,7 @@ class Ui_MainWindow(object):
         self.rbZhTw = QRadioButton(self.centralwidget)
         self.buttonGroup_region.addButton(self.rbZhTw)
         self.rbZhTw.setObjectName(u"rbZhTw")
-        self.rbZhTw.setFont(font1)
+        self.rbZhTw.setFont(font2)
         self.rbZhTw.setChecked(True)
 
         self.horizontalLayout_region.addWidget(self.rbZhTw, 0, Qt.AlignHCenter)
@@ -92,7 +125,7 @@ class Ui_MainWindow(object):
         self.rbHK = QRadioButton(self.centralwidget)
         self.buttonGroup_region.addButton(self.rbHK)
         self.rbHK.setObjectName(u"rbHK")
-        self.rbHK.setFont(font1)
+        self.rbHK.setFont(font2)
 
         self.horizontalLayout_region.addWidget(self.rbHK, 0, Qt.AlignHCenter)
 
@@ -103,13 +136,13 @@ class Ui_MainWindow(object):
         self.horizontalLayout_idioms.setObjectName(u"horizontalLayout_idioms")
         self.cbZhTw = QCheckBox(self.centralwidget)
         self.cbZhTw.setObjectName(u"cbZhTw")
-        self.cbZhTw.setFont(font1)
+        self.cbZhTw.setFont(font2)
 
         self.horizontalLayout_idioms.addWidget(self.cbZhTw, 0, Qt.AlignHCenter)
 
         self.cbPunct = QCheckBox(self.centralwidget)
         self.cbPunct.setObjectName(u"cbPunct")
-        self.cbPunct.setFont(font1)
+        self.cbPunct.setFont(font2)
         self.cbPunct.setChecked(True)
 
         self.horizontalLayout_idioms.addWidget(self.cbPunct, 0, Qt.AlignHCenter)
@@ -126,7 +159,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.tabWidget = QTabWidget(self.centralwidget)
         self.tabWidget.setObjectName(u"tabWidget")
-        self.tabWidget.setFont(font1)
+        self.tabWidget.setFont(font2)
         self.tabWidget.setTabShape(QTabWidget.Rounded)
         self.tabWidget.setIconSize(QSize(20, 20))
         self.tab_main = QWidget()
@@ -139,10 +172,10 @@ class Ui_MainWindow(object):
         self.horizontalLayout_textBox.setContentsMargins(0, 0, 0, -1)
         self.tbSource = TextEditWidget(self.tab_main)
         self.tbSource.setObjectName(u"tbSource")
-        font2 = QFont()
-        font2.setFamilies([u"Microsoft YaHei UI"])
-        font2.setPointSize(11)
-        self.tbSource.setFont(font2)
+        font3 = QFont()
+        font3.setFamilies([u"Microsoft YaHei UI"])
+        font3.setPointSize(11)
+        self.tbSource.setFont(font3)
         self.tbSource.setFrameShape(QFrame.Box)
         self.tbSource.setLineWidth(2)
         self.tbSource.setMidLineWidth(0)
@@ -152,7 +185,7 @@ class Ui_MainWindow(object):
 
         self.tbDestination = QPlainTextEdit(self.tab_main)
         self.tbDestination.setObjectName(u"tbDestination")
-        self.tbDestination.setFont(font2)
+        self.tbDestination.setFont(font3)
         self.tbDestination.setAcceptDrops(False)
         self.tbDestination.setFrameShape(QFrame.Box)
         self.tbDestination.setLineWidth(2)
@@ -178,7 +211,7 @@ class Ui_MainWindow(object):
         self.lblSource.setSizePolicy(sizePolicy)
         self.lblSource.setMinimumSize(QSize(80, 0))
         self.lblSource.setMaximumSize(QSize(80, 16777215))
-        self.lblSource.setFont(font1)
+        self.lblSource.setFont(font2)
         self.lblSource.setFrameShape(QFrame.Box)
         self.lblSource.setLineWidth(1)
         self.lblSource.setAlignment(Qt.AlignCenter)
@@ -192,7 +225,7 @@ class Ui_MainWindow(object):
         sizePolicy1.setVerticalStretch(0)
         sizePolicy1.setHeightForWidth(self.lblSourceCode.sizePolicy().hasHeightForWidth())
         self.lblSourceCode.setSizePolicy(sizePolicy1)
-        self.lblSourceCode.setFont(font1)
+        self.lblSourceCode.setFont(font2)
         self.lblSourceCode.setMargin(5)
 
         self.horizontalLayout_source.addWidget(self.lblSourceCode)
@@ -201,7 +234,7 @@ class Ui_MainWindow(object):
         self.lblCharCount.setObjectName(u"lblCharCount")
         sizePolicy1.setHeightForWidth(self.lblCharCount.sizePolicy().hasHeightForWidth())
         self.lblCharCount.setSizePolicy(sizePolicy1)
-        self.lblCharCount.setFont(font1)
+        self.lblCharCount.setFont(font2)
 
         self.horizontalLayout_source.addWidget(self.lblCharCount, 0, Qt.AlignRight)
 
@@ -210,10 +243,10 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.btnDetect.sizePolicy().hasHeightForWidth())
         self.btnDetect.setSizePolicy(sizePolicy)
         self.btnDetect.setMaximumSize(QSize(30, 16777215))
-        font3 = QFont()
-        font3.setPointSize(10)
-        font3.setBold(True)
-        self.btnDetect.setFont(font3)
+        font4 = QFont()
+        font4.setPointSize(10)
+        font4.setBold(True)
+        self.btnDetect.setFont(font4)
         icon = QIcon()
         icon.addFile(u":/images/resource/icons8-refresh-48.png", QSize(), QIcon.Normal, QIcon.Off)
         self.btnDetect.setIcon(icon)
@@ -223,7 +256,7 @@ class Ui_MainWindow(object):
         self.btnClearTbSource = QPushButton(self.tab_main)
         self.btnClearTbSource.setObjectName(u"btnClearTbSource")
         self.btnClearTbSource.setMaximumSize(QSize(30, 16777215))
-        self.btnClearTbSource.setFont(font3)
+        self.btnClearTbSource.setFont(font4)
 
         self.horizontalLayout_source.addWidget(self.btnClearTbSource)
 
@@ -231,7 +264,7 @@ class Ui_MainWindow(object):
         self.btnPaste.setObjectName(u"btnPaste")
         sizePolicy.setHeightForWidth(self.btnPaste.sizePolicy().hasHeightForWidth())
         self.btnPaste.setSizePolicy(sizePolicy)
-        self.btnPaste.setFont(font1)
+        self.btnPaste.setFont(font2)
 
         self.horizontalLayout_source.addWidget(self.btnPaste)
 
@@ -246,7 +279,7 @@ class Ui_MainWindow(object):
         self.lblDestination.setSizePolicy(sizePolicy)
         self.lblDestination.setMinimumSize(QSize(80, 0))
         self.lblDestination.setMaximumSize(QSize(80, 16777215))
-        self.lblDestination.setFont(font1)
+        self.lblDestination.setFont(font2)
         self.lblDestination.setFrameShape(QFrame.Box)
         self.lblDestination.setAlignment(Qt.AlignCenter)
 
@@ -254,7 +287,7 @@ class Ui_MainWindow(object):
 
         self.lblDestinationCode = QLabel(self.tab_main)
         self.lblDestinationCode.setObjectName(u"lblDestinationCode")
-        self.lblDestinationCode.setFont(font1)
+        self.lblDestinationCode.setFont(font2)
         self.lblDestinationCode.setMargin(5)
 
         self.horizontalLayout_deatination.addWidget(self.lblDestinationCode)
@@ -262,7 +295,7 @@ class Ui_MainWindow(object):
         self.btnClearTbDestination = QPushButton(self.tab_main)
         self.btnClearTbDestination.setObjectName(u"btnClearTbDestination")
         self.btnClearTbDestination.setMaximumSize(QSize(30, 16777215))
-        self.btnClearTbDestination.setFont(font3)
+        self.btnClearTbDestination.setFont(font4)
 
         self.horizontalLayout_deatination.addWidget(self.btnClearTbDestination)
 
@@ -270,7 +303,7 @@ class Ui_MainWindow(object):
         self.btnCopy.setObjectName(u"btnCopy")
         sizePolicy.setHeightForWidth(self.btnCopy.sizePolicy().hasHeightForWidth())
         self.btnCopy.setSizePolicy(sizePolicy)
-        self.btnCopy.setFont(font1)
+        self.btnCopy.setFont(font2)
 
         self.horizontalLayout_deatination.addWidget(self.btnCopy)
 
@@ -293,7 +326,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_listbox.setObjectName(u"horizontalLayout_listbox")
         self.listSource = DragListWidget(self.tab_batch)
         self.listSource.setObjectName(u"listSource")
-        self.listSource.setFont(font1)
+        self.listSource.setFont(font2)
         self.listSource.setAcceptDrops(True)
         self.listSource.setFrameShape(QFrame.Box)
         self.listSource.setLineWidth(2)
@@ -307,7 +340,7 @@ class Ui_MainWindow(object):
 
         self.tbPreview = QPlainTextEdit(self.tab_batch)
         self.tbPreview.setObjectName(u"tbPreview")
-        self.tbPreview.setFont(font2)
+        self.tbPreview.setFont(font3)
         self.tbPreview.setAcceptDrops(False)
         self.tbPreview.setFrameShape(QFrame.Box)
         self.tbPreview.setLineWidth(2)
@@ -323,28 +356,28 @@ class Ui_MainWindow(object):
         self.horizontalLayout_listbox_buttons.setObjectName(u"horizontalLayout_listbox_buttons")
         self.btnAdd = QPushButton(self.tab_batch)
         self.btnAdd.setObjectName(u"btnAdd")
-        self.btnAdd.setFont(font3)
+        self.btnAdd.setFont(font4)
 
         self.horizontalLayout_listbox_buttons.addWidget(self.btnAdd)
 
         self.btnRemove = QPushButton(self.tab_batch)
         self.btnRemove.setObjectName(u"btnRemove")
-        self.btnRemove.setFont(font3)
+        self.btnRemove.setFont(font4)
 
         self.horizontalLayout_listbox_buttons.addWidget(self.btnRemove)
 
         self.btnClear = QPushButton(self.tab_batch)
         self.btnClear.setObjectName(u"btnClear")
-        self.btnClear.setFont(font3)
+        self.btnClear.setFont(font4)
 
         self.horizontalLayout_listbox_buttons.addWidget(self.btnClear)
 
         self.btnPreview = QPushButton(self.tab_batch)
         self.btnPreview.setObjectName(u"btnPreview")
-        font4 = QFont()
-        font4.setPointSize(9)
-        font4.setBold(False)
-        self.btnPreview.setFont(font4)
+        font5 = QFont()
+        font5.setPointSize(9)
+        font5.setBold(False)
+        self.btnPreview.setFont(font5)
         icon2 = QIcon()
         icon2.addFile(u":/images/resource/icons8-preview-48.png", QSize(), QIcon.Normal, QIcon.Off)
         self.btnPreview.setIcon(icon2)
@@ -364,7 +397,7 @@ class Ui_MainWindow(object):
         sizePolicy2.setVerticalStretch(0)
         sizePolicy2.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
         self.label.setSizePolicy(sizePolicy2)
-        self.label.setFont(font1)
+        self.label.setFont(font2)
         self.label.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
         self.label.setMargin(1)
 
@@ -380,7 +413,7 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.btnOutDir.sizePolicy().hasHeightForWidth())
         self.btnOutDir.setSizePolicy(sizePolicy)
         self.btnOutDir.setMaximumSize(QSize(30, 16777215))
-        self.btnOutDir.setFont(font3)
+        self.btnOutDir.setFont(font4)
         icon3 = QIcon()
         icon3.addFile(u":/images/resource/icons8-folder-64.png", QSize(), QIcon.Normal, QIcon.Off)
         self.btnOutDir.setIcon(icon3)
@@ -391,7 +424,7 @@ class Ui_MainWindow(object):
         self.btnPreviewClear.setObjectName(u"btnPreviewClear")
         sizePolicy.setHeightForWidth(self.btnPreviewClear.sizePolicy().hasHeightForWidth())
         self.btnPreviewClear.setSizePolicy(sizePolicy)
-        self.btnPreviewClear.setFont(font3)
+        self.btnPreviewClear.setFont(font4)
 
         self.horizontalLayout_preview.addWidget(self.btnPreviewClear)
 
@@ -421,13 +454,13 @@ class Ui_MainWindow(object):
         self.btnOpenFile.setObjectName(u"btnOpenFile")
         sizePolicy.setHeightForWidth(self.btnOpenFile.sizePolicy().hasHeightForWidth())
         self.btnOpenFile.setSizePolicy(sizePolicy)
-        self.btnOpenFile.setFont(font1)
+        self.btnOpenFile.setFont(font2)
 
         self.horizontalLayout_openFile.addWidget(self.btnOpenFile)
 
         self.lblFilename = QLabel(self.centralwidget)
         self.lblFilename.setObjectName(u"lblFilename")
-        self.lblFilename.setFont(font1)
+        self.lblFilename.setFont(font2)
         self.lblFilename.setMargin(5)
 
         self.horizontalLayout_openFile.addWidget(self.lblFilename)
@@ -442,10 +475,10 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.btnProcess.sizePolicy().hasHeightForWidth())
         self.btnProcess.setSizePolicy(sizePolicy)
         self.btnProcess.setMinimumSize(QSize(110, 0))
-        font5 = QFont()
-        font5.setPointSize(12)
-        font5.setBold(True)
-        self.btnProcess.setFont(font5)
+        font6 = QFont()
+        font6.setPointSize(12)
+        font6.setBold(True)
+        self.btnProcess.setFont(font6)
         icon5 = QIcon()
         icon5.addFile(u":/images/resource/icons8-start-48.png", QSize(), QIcon.Normal, QIcon.Off)
         self.btnProcess.setIcon(icon5)
@@ -466,7 +499,7 @@ class Ui_MainWindow(object):
         self.btnSaveAs.setObjectName(u"btnSaveAs")
         sizePolicy.setHeightForWidth(self.btnSaveAs.sizePolicy().hasHeightForWidth())
         self.btnSaveAs.setSizePolicy(sizePolicy)
-        self.btnSaveAs.setFont(font1)
+        self.btnSaveAs.setFont(font2)
 
         self.horizontalLayout_saveExit.addWidget(self.btnSaveAs)
 
@@ -474,7 +507,7 @@ class Ui_MainWindow(object):
         self.btnExit.setObjectName(u"btnExit")
         sizePolicy.setHeightForWidth(self.btnExit.sizePolicy().hasHeightForWidth())
         self.btnExit.setSizePolicy(sizePolicy)
-        self.btnExit.setFont(font1)
+        self.btnExit.setFont(font2)
 
         self.horizontalLayout_saveExit.addWidget(self.btnExit)
 
@@ -498,7 +531,7 @@ class Ui_MainWindow(object):
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QStatusBar(MainWindow)
         self.statusbar.setObjectName(u"statusbar")
-        self.statusbar.setFont(font1)
+        self.statusbar.setFont(font2)
         MainWindow.setStatusBar(self.statusbar)
 
         self.menubar.addAction(self.menuFile.menuAction())
@@ -508,6 +541,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
+        self.cbManual.setCurrentIndex(0)
         self.tabWidget.setCurrentIndex(0)
 
 
@@ -520,6 +554,24 @@ class Ui_MainWindow(object):
         self.actionAbout.setText(QCoreApplication.translate("MainWindow", u"About", None))
         self.rbS2t.setText(QCoreApplication.translate("MainWindow", u"zh-Hans \uff08\u7c21\uff09 To Zh-Hant \uff08\u7e41\uff09", None))
         self.rbT2s.setText(QCoreApplication.translate("MainWindow", u"zh-Hant \uff08\u7e41\uff09 To zh-Hans \uff08\u7c21\uff09", None))
+        self.rbManual.setText(QCoreApplication.translate("MainWindow", u"Manual (\u81ea\u5b9a\u4e49) :", None))
+        self.cbManual.setItemText(0, QCoreApplication.translate("MainWindow", u"s2t (\u7b80 -> \u7e41)", None))
+        self.cbManual.setItemText(1, QCoreApplication.translate("MainWindow", u"s2tw (\u7b80 -> \u7e41/\u53f0)", None))
+        self.cbManual.setItemText(2, QCoreApplication.translate("MainWindow", u"s2twp (\u7b80 -> \u7e41/\u53f0/\u60ef)", None))
+        self.cbManual.setItemText(3, QCoreApplication.translate("MainWindow", u"s2hk (\u7b80 -> \u7e41/\u6e2f)", None))
+        self.cbManual.setItemText(4, QCoreApplication.translate("MainWindow", u"t2s (\u7e41 -> \u7b80)", None))
+        self.cbManual.setItemText(5, QCoreApplication.translate("MainWindow", u"t2tw (\u7e41 -> \u7e41/\u53f0)", None))
+        self.cbManual.setItemText(6, QCoreApplication.translate("MainWindow", u"t2twp (\u7e41 -> \u7e41/\u53f0/\u60ef)", None))
+        self.cbManual.setItemText(7, QCoreApplication.translate("MainWindow", u"t2hk (\u7e41 -> \u7e41/\u6e2f)", None))
+        self.cbManual.setItemText(8, QCoreApplication.translate("MainWindow", u"tw2s (\u7e41/\u53f0 -> \u7b80)", None))
+        self.cbManual.setItemText(9, QCoreApplication.translate("MainWindow", u"tw2sp (\u7e41/\u53f0 -> \u7b80/\u60ef)", None))
+        self.cbManual.setItemText(10, QCoreApplication.translate("MainWindow", u"tw2t (\u7e41/\u53f0 -> \u7e41)", None))
+        self.cbManual.setItemText(11, QCoreApplication.translate("MainWindow", u"tw2tp (\u7e41/\u53f0 -> \u7e41/\u60ef)", None))
+        self.cbManual.setItemText(12, QCoreApplication.translate("MainWindow", u"hk2s (\u7e41/\u6e2f -> \u7b80)", None))
+        self.cbManual.setItemText(13, QCoreApplication.translate("MainWindow", u"hk2t (\u7e41/\u6e2f -> \u7e41)", None))
+        self.cbManual.setItemText(14, QCoreApplication.translate("MainWindow", u"jp2t (\u65e5/\u65b0 -> \u65e5/\u820a)", None))
+        self.cbManual.setItemText(15, QCoreApplication.translate("MainWindow", u"t2jp (\u65e5/\u820a -> \u65e5/\u65b0)", None))
+
         self.rbStd.setText(QCoreApplication.translate("MainWindow", u"Standard \uff08\u6a19\u6e96\u7c21\u7e41\uff09", None))
         self.rbZhTw.setText(QCoreApplication.translate("MainWindow", u"ZH/TW \uff08\u4e2d\u81fa\u7c21\u7e41\uff09", None))
         self.rbHK.setText(QCoreApplication.translate("MainWindow", u"Hong Kong \uff08\u9999\u6e2f\u7c21\u7e41\uff09", None))

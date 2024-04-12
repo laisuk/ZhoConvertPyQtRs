@@ -42,6 +42,7 @@ class MainWindow(QMainWindow):
         self.ui.btnPreview.clicked.connect(self.btn_preview_clicked)
         self.ui.btnPreviewClear.clicked.connect(self.btn_preview_clear_clicked)
         self.ui.btnOutDir.clicked.connect(self.btn_out_directory_clicked)
+        self.ui.cbManual.activated.connect(self.cb_manual_activated)
         self.ui.actionAbout.triggered.connect(self.action_about_triggered)
         self.ui.actionExit.triggered.connect(btn_exit_click)
 
@@ -116,27 +117,33 @@ class MainWindow(QMainWindow):
         self.detect_source_text_info()
         self.ui.statusbar.showMessage(f"File: {filename[0]}")
 
-    def btn_process_click(self):
+    def get_current_config(self):
         config = "s2tw"
-        self.ui.tbDestination.clear()
-        if self.ui.rbS2t.isChecked():
-            if self.ui.rbHK.isChecked():
-                config = "s2hk"
-            elif self.ui.rbStd.isChecked():
-                config = "s2t"
-            else:
-                config = "s2twp" if self.ui.cbZhTw.isChecked() else "s2tw"
-        elif self.ui.rbT2s.isChecked():
-            if self.ui.rbHK.isChecked():
-                config = "hk2s"
-            elif self.ui.rbStd.isChecked():
-                config = "t2s"
-            else:
-                config = "tw2sp" if self.ui.cbZhTw.isChecked() else "tw2s"
+        if self.ui.rbManual.isChecked():
+            config = self.ui.cbManual.currentText().split(' ')[0]
+        else:
+            if self.ui.rbS2t.isChecked():
+                if self.ui.rbHK.isChecked():
+                    config = "s2hk"
+                elif self.ui.rbStd.isChecked():
+                    config = "s2t"
+                else:
+                    config = "s2twp" if self.ui.cbZhTw.isChecked() else "s2tw"
+            elif self.ui.rbT2s.isChecked():
+                if self.ui.rbHK.isChecked():
+                    config = "hk2s"
+                elif self.ui.rbStd.isChecked():
+                    config = "t2s"
+                else:
+                    config = "tw2sp" if self.ui.cbZhTw.isChecked() else "tw2s"
+        return config
 
+    def btn_process_click(self):
+        config = self.get_current_config()
         converter = OpenCC(config)
 
         if self.ui.tabWidget.currentIndex() == 0:
+            self.ui.tbDestination.clear()
             if not self.ui.tbSource.document().toPlainText():
                 self.ui.statusbar.showMessage("Nothing to convert: Empty content.")
                 return
@@ -145,10 +152,16 @@ class MainWindow(QMainWindow):
             converted_text = converter.convert(input_text, self.ui.cbPunct.isChecked())
 
             self.ui.tbDestination.document().setPlainText(converted_text)
-            if "Non" not in self.ui.lblSourceCode.text():
-                self.ui.lblDestinationCode.setText("zh-Hant (繁体)" if self.ui.rbS2t.isChecked() else "zh-Hans (簡體)")
+
+            if self.ui.rbManual.isChecked():
+                self.ui.lblDestinationCode.setText(self.ui.cbManual.currentText())
             else:
-                self.ui.lblDestinationCode.setText(self.ui.lblSourceCode.text())
+                if "Non" not in self.ui.lblSourceCode.text():
+                    self.ui.lblDestinationCode.setText(
+                        "zh-Hant (繁体)" if self.ui.rbS2t.isChecked() else "zh-Hans (簡體)")
+                else:
+                    self.ui.lblDestinationCode.setText(self.ui.lblSourceCode.text())
+
             self.ui.statusbar.showMessage("Process completed")
 
         if self.ui.tabWidget.currentIndex() == 1:
@@ -276,6 +289,9 @@ class MainWindow(QMainWindow):
         self.ui.tbDestination.clear()
         self.ui.lblDestinationCode.setText("")
         self.ui.statusbar.showMessage("Destination contents cleared.")
+
+    def cb_manual_activated(self):
+        self.ui.rbManual.setChecked(True)
 
 
 def btn_exit_click():

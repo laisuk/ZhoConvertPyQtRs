@@ -50,6 +50,125 @@
         </attribute>
        </widget>
       </item>
+      <item>
+       <widget class="QRadioButton" name="rbManual">
+        <property name="maximumSize">
+         <size>
+          <width>150</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Manual (自定义) :</string>
+        </property>
+        <attribute name="buttonGroup">
+         <string notr="true">buttonGroup_config</string>
+        </attribute>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="cbManual">
+        <property name="maximumSize">
+         <size>
+          <width>180</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>11</pointsize>
+         </font>
+        </property>
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
+        <item>
+         <property name="text">
+          <string>s2t (简 -&gt; 繁)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>s2tw (简 -&gt; 繁/台)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>s2twp (简 -&gt; 繁/台/惯)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>s2hk (简 -&gt; 繁/港)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>t2s (繁 -&gt; 简)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>t2tw (繁 -&gt; 繁/台)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>t2twp (繁 -&gt; 繁/台/惯)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>t2hk (繁 -&gt; 繁/港)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>tw2s (繁/台 -&gt; 简)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>tw2sp (繁/台 -&gt; 简/惯)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>tw2t (繁/台 -&gt; 繁)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>tw2tp (繁/台 -&gt; 繁/惯)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>hk2s (繁/港 -&gt; 简)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>hk2t (繁/港 -&gt; 繁)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>jp2t (日/新 -&gt; 日/舊)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>t2jp (日/舊 -&gt; 日/新)</string>
+         </property>
+        </item>
+       </widget>
+      </item>
      </layout>
     </item>
     <item>
@@ -929,7 +1048,7 @@
  </resources>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup_region"/>
   <buttongroup name="buttonGroup_config"/>
+  <buttongroup name="buttonGroup_region"/>
  </buttongroups>
 </ui>
