@@ -18,9 +18,7 @@ CONFIG_LIST = [
 
 class OpenCC:
     def __init__(self, config=None):
-        self.config = config
-        if self.config not in CONFIG_LIST:
-            self.config = "s2t"
+        self.config = config if config in CONFIG_LIST else "s2t"
 
     # Load the DLL
     dll_path = os.path.join(os.path.dirname(__file__), DLL_FILE)
