@@ -34,16 +34,16 @@ class OpenCC:
     lib.opencc_zho_check.argtypes = [ctypes.c_void_p, ctypes.c_char_p]
     lib.opencc_free.argtypes = [ctypes.c_void_p]
 
-    def convert(self, string, punctuation=False):
+    def convert(self, text, punctuation=False):
         opencc = self.lib.opencc_new()
         if opencc is None:
-            return string
-        result = self.lib.opencc_convert(opencc, self.config.encode('utf-8'), string.encode('utf-8'), punctuation)
+            return text
+        result = self.lib.opencc_convert(opencc, text.encode('utf-8'), self.config.encode('utf-8'), punctuation)
         self.lib.opencc_free(opencc)
         return result.decode('utf-8')
 
-    def zho_check(self, string):
+    def zho_check(self, text):
         opencc = self.lib.opencc_new()
-        code = self.lib.opencc_zho_check(opencc, string.encode('utf-8'))
+        code = self.lib.opencc_zho_check(opencc, text.encode('utf-8'))
         self.lib.opencc_free(opencc)
         return code

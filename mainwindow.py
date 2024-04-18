@@ -158,7 +158,7 @@ class MainWindow(QMainWindow):
             else:
                 if "Non" not in self.ui.lblSourceCode.text():
                     self.ui.lblDestinationCode.setText(
-                        "zh-Hant (繁体)" if self.ui.rbS2t.isChecked() else "zh-Hans (簡體)")
+                        "zh-Hant (繁體)" if self.ui.rbS2t.isChecked() else "zh-Hans (簡體)")
                 else:
                     self.ui.lblDestinationCode.setText(self.ui.lblSourceCode.text())
 

@@ -89,37 +89,37 @@
         </property>
         <item>
          <property name="text">
-          <string>s2t (简 -&gt; 繁)</string>
+          <string>s2t (簡 -&gt; 繁)</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>s2tw (简 -&gt; 繁/台)</string>
+          <string>s2tw (簡 -&gt; 繁/臺)</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>s2twp (简 -&gt; 繁/台/惯)</string>
+          <string>s2twp (簡 -&gt; 繁/臺/慣)</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>s2hk (简 -&gt; 繁/港)</string>
+          <string>s2hk (簡 -&gt; 繁/港)</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>t2s (繁 -&gt; 简)</string>
+          <string>t2s (繁 -&gt; 簡)</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>t2tw (繁 -&gt; 繁/台)</string>
+          <string>t2tw (繁 -&gt; 繁/臺)</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>t2twp (繁 -&gt; 繁/台/惯)</string>
+          <string>t2twp (繁 -&gt; 繁/臺/慣)</string>
          </property>
         </item>
         <item>
@@ -129,27 +129,27 @@
         </item>
         <item>
          <property name="text">
-          <string>tw2s (繁/台 -&gt; 简)</string>
+          <string>tw2s (繁/臺 -&gt; 簡)</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>tw2sp (繁/台 -&gt; 简/惯)</string>
+          <string>tw2sp (繁/臺 -&gt; 簡/慣)</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>tw2t (繁/台 -&gt; 繁)</string>
+          <string>tw2t (繁/臺 -&gt; 繁)</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>tw2tp (繁/台 -&gt; 繁/惯)</string>
+          <string>tw2tp (繁/臺 -&gt; 繁/慣)</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>hk2s (繁/港 -&gt; 简)</string>
+          <string>hk2s (繁/港 -&gt; 簡)</string>
          </property>
         </item>
         <item>
@@ -186,7 +186,7 @@
            <string>Standard （標準簡繁）</string>
           </property>
           <property name="checked">
-           <bool>false</bool>
+           <bool>true</bool>
           </property>
           <attribute name="buttonGroup">
            <string notr="true">buttonGroup_region</string>
@@ -204,7 +204,7 @@
            <string>ZH/TW （中臺簡繁）</string>
           </property>
           <property name="checked">
-           <bool>true</bool>
+           <bool>false</bool>
           </property>
           <attribute name="buttonGroup">
            <string notr="true">buttonGroup_region</string>
@@ -805,6 +805,12 @@
                  <iconset resource="resource.qrc">
                   <normaloff>:/images/resource/icons8-folder-64.png</normaloff>:/images/resource/icons8-folder-64.png</iconset>
                 </property>
+                <property name="iconSize">
+                 <size>
+                  <width>18</width>
+                  <height>18</height>
+                 </size>
+                </property>
                </widget>
               </item>
               <item>
@@ -1048,7 +1054,7 @@
  </resources>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup_config"/>
   <buttongroup name="buttonGroup_region"/>
+  <buttongroup name="buttonGroup_config"/>
  </buttongroups>
 </ui>
