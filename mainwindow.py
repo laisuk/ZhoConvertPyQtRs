@@ -158,7 +158,7 @@ class MainWindow(QMainWindow):
             else:
                 if "Non" not in self.ui.lblSourceCode.text():
                     self.ui.lblDestinationCode.setText(
-                        "zh-Hant (繁體)" if self.ui.rbS2t.isChecked() else "zh-Hans (簡體)")
+                        "zh-Hant (繁体)" if self.ui.rbS2t.isChecked() else "zh-Hans (简体)")
                 else:
                     self.ui.lblDestinationCode.setText(self.ui.lblSourceCode.text())
 
@@ -202,10 +202,10 @@ class MainWindow(QMainWindow):
     def update_source_code(self, text_code):
         match text_code:
             case 1:
-                self.ui.lblSourceCode.setText("zh-Hant (繁體)")
+                self.ui.lblSourceCode.setText("zh-Hant (繁体)")
                 self.ui.rbT2s.setChecked(True)
             case 2:
-                self.ui.lblSourceCode.setText("zh-Hans (簡體)")
+                self.ui.lblSourceCode.setText("zh-Hans (简体)")
                 self.ui.rbS2t.setChecked(True)
             case _:
                 self.ui.lblSourceCode.setText("Non-zh (其它)")

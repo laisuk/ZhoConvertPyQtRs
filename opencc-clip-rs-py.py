@@ -1,6 +1,5 @@
 import sys
 import pyperclip as pc
-# from tkinter import Tk
 from opencc_rs import OpenCC
 
 RED = "\033[1;31m"
@@ -55,7 +54,7 @@ def main():
                 display_input_code = "Traditional 繁体"
                 display_output_code = "Simplified 简体"
             case 2:
-                config = "s2tw"
+                config = "s2t"
                 display_input_code = "Simplified 简体"
                 display_output_code = "Traditional 繁体"
             case _:

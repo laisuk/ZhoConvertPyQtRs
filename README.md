@@ -8,7 +8,7 @@ Ensure the xcb-cursor0 library is installed using:
 
 Verify your Qt installation with:
 
-`sudo apt-get install --reinstall qt5-default`
+`sudo apt-get install --reinstall qt6-default`
 
 Check library paths:
 

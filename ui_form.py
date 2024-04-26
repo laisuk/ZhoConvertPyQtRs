@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'form.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.6.3
+## Created by: Qt User Interface Compiler version 6.7.0
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -33,10 +33,10 @@ class Ui_MainWindow(object):
         MainWindow.resize(992, 751)
         self.actionExit = QAction(MainWindow)
         self.actionExit.setObjectName(u"actionExit")
-        self.actionExit.setMenuRole(QAction.TextHeuristicRole)
+        self.actionExit.setMenuRole(QAction.MenuRole.TextHeuristicRole)
         self.actionAbout = QAction(MainWindow)
         self.actionAbout.setObjectName(u"actionAbout")
-        self.actionAbout.setMenuRole(QAction.TextHeuristicRole)
+        self.actionAbout.setMenuRole(QAction.MenuRole.TextHeuristicRole)
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.verticalLayout_3 = QVBoxLayout(self.centralwidget)
@@ -53,14 +53,14 @@ class Ui_MainWindow(object):
         self.rbS2t.setFont(font)
         self.rbS2t.setChecked(True)
 
-        self.horizontalLayout_config.addWidget(self.rbS2t, 0, Qt.AlignHCenter)
+        self.horizontalLayout_config.addWidget(self.rbS2t, 0, Qt.AlignmentFlag.AlignHCenter)
 
         self.rbT2s = QRadioButton(self.centralwidget)
         self.buttonGroup_config.addButton(self.rbT2s)
         self.rbT2s.setObjectName(u"rbT2s")
         self.rbT2s.setFont(font)
 
-        self.horizontalLayout_config.addWidget(self.rbT2s, 0, Qt.AlignHCenter)
+        self.horizontalLayout_config.addWidget(self.rbT2s, 0, Qt.AlignmentFlag.AlignHCenter)
 
         self.rbManual = QRadioButton(self.centralwidget)
         self.buttonGroup_config.addButton(self.rbManual)
@@ -112,7 +112,7 @@ class Ui_MainWindow(object):
         self.rbStd.setFont(font2)
         self.rbStd.setChecked(True)
 
-        self.horizontalLayout_region.addWidget(self.rbStd, 0, Qt.AlignHCenter)
+        self.horizontalLayout_region.addWidget(self.rbStd, 0, Qt.AlignmentFlag.AlignHCenter)
 
         self.rbZhTw = QRadioButton(self.centralwidget)
         self.buttonGroup_region.addButton(self.rbZhTw)
@@ -120,14 +120,14 @@ class Ui_MainWindow(object):
         self.rbZhTw.setFont(font2)
         self.rbZhTw.setChecked(False)
 
-        self.horizontalLayout_region.addWidget(self.rbZhTw, 0, Qt.AlignHCenter)
+        self.horizontalLayout_region.addWidget(self.rbZhTw, 0, Qt.AlignmentFlag.AlignHCenter)
 
         self.rbHK = QRadioButton(self.centralwidget)
         self.buttonGroup_region.addButton(self.rbHK)
         self.rbHK.setObjectName(u"rbHK")
         self.rbHK.setFont(font2)
 
-        self.horizontalLayout_region.addWidget(self.rbHK, 0, Qt.AlignHCenter)
+        self.horizontalLayout_region.addWidget(self.rbHK, 0, Qt.AlignmentFlag.AlignHCenter)
 
 
         self.horizontalLayout_config_region.addLayout(self.horizontalLayout_region)
@@ -138,14 +138,14 @@ class Ui_MainWindow(object):
         self.cbZhTw.setObjectName(u"cbZhTw")
         self.cbZhTw.setFont(font2)
 
-        self.horizontalLayout_idioms.addWidget(self.cbZhTw, 0, Qt.AlignHCenter)
+        self.horizontalLayout_idioms.addWidget(self.cbZhTw, 0, Qt.AlignmentFlag.AlignHCenter)
 
         self.cbPunct = QCheckBox(self.centralwidget)
         self.cbPunct.setObjectName(u"cbPunct")
         self.cbPunct.setFont(font2)
         self.cbPunct.setChecked(True)
 
-        self.horizontalLayout_idioms.addWidget(self.cbPunct, 0, Qt.AlignHCenter)
+        self.horizontalLayout_idioms.addWidget(self.cbPunct, 0, Qt.AlignmentFlag.AlignHCenter)
 
 
         self.horizontalLayout_config_region.addLayout(self.horizontalLayout_idioms)
@@ -160,7 +160,7 @@ class Ui_MainWindow(object):
         self.tabWidget = QTabWidget(self.centralwidget)
         self.tabWidget.setObjectName(u"tabWidget")
         self.tabWidget.setFont(font2)
-        self.tabWidget.setTabShape(QTabWidget.Rounded)
+        self.tabWidget.setTabShape(QTabWidget.TabShape.Rounded)
         self.tabWidget.setIconSize(QSize(20, 20))
         self.tab_main = QWidget()
         self.tab_main.setObjectName(u"tab_main")
@@ -173,13 +173,13 @@ class Ui_MainWindow(object):
         self.tbSource = TextEditWidget(self.tab_main)
         self.tbSource.setObjectName(u"tbSource")
         font3 = QFont()
-        font3.setFamilies([u"Microsoft YaHei UI"])
-        font3.setPointSize(11)
+        font3.setFamilies([u"Noto Sans CJK HK"])
+        font3.setPointSize(12)
         self.tbSource.setFont(font3)
-        self.tbSource.setFrameShape(QFrame.Box)
+        self.tbSource.setFrameShape(QFrame.Shape.Box)
         self.tbSource.setLineWidth(2)
         self.tbSource.setMidLineWidth(0)
-        self.tbSource.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self.tbSource.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
 
         self.horizontalLayout_textBox.addWidget(self.tbSource)
 
@@ -187,10 +187,10 @@ class Ui_MainWindow(object):
         self.tbDestination.setObjectName(u"tbDestination")
         self.tbDestination.setFont(font3)
         self.tbDestination.setAcceptDrops(False)
-        self.tbDestination.setFrameShape(QFrame.Box)
+        self.tbDestination.setFrameShape(QFrame.Shape.Box)
         self.tbDestination.setLineWidth(2)
         self.tbDestination.setMidLineWidth(0)
-        self.tbDestination.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        self.tbDestination.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.tbDestination.setReadOnly(True)
 
         self.horizontalLayout_textBox.addWidget(self.tbDestination)
@@ -212,9 +212,9 @@ class Ui_MainWindow(object):
         self.lblSource.setMinimumSize(QSize(80, 0))
         self.lblSource.setMaximumSize(QSize(80, 16777215))
         self.lblSource.setFont(font2)
-        self.lblSource.setFrameShape(QFrame.Box)
+        self.lblSource.setFrameShape(QFrame.Shape.Box)
         self.lblSource.setLineWidth(1)
-        self.lblSource.setAlignment(Qt.AlignCenter)
+        self.lblSource.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.horizontalLayout_source.addWidget(self.lblSource)
 
@@ -236,7 +236,7 @@ class Ui_MainWindow(object):
         self.lblCharCount.setSizePolicy(sizePolicy1)
         self.lblCharCount.setFont(font2)
 
-        self.horizontalLayout_source.addWidget(self.lblCharCount, 0, Qt.AlignRight)
+        self.horizontalLayout_source.addWidget(self.lblCharCount, 0, Qt.AlignmentFlag.AlignRight)
 
         self.btnDetect = QPushButton(self.tab_main)
         self.btnDetect.setObjectName(u"btnDetect")
@@ -280,8 +280,8 @@ class Ui_MainWindow(object):
         self.lblDestination.setMinimumSize(QSize(80, 0))
         self.lblDestination.setMaximumSize(QSize(80, 16777215))
         self.lblDestination.setFont(font2)
-        self.lblDestination.setFrameShape(QFrame.Box)
-        self.lblDestination.setAlignment(Qt.AlignCenter)
+        self.lblDestination.setFrameShape(QFrame.Shape.Box)
+        self.lblDestination.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.horizontalLayout_deatination.addWidget(self.lblDestination)
 
@@ -326,14 +326,14 @@ class Ui_MainWindow(object):
         self.horizontalLayout_listbox.setObjectName(u"horizontalLayout_listbox")
         self.listSource = DragListWidget(self.tab_batch)
         self.listSource.setObjectName(u"listSource")
-        self.listSource.setFont(font2)
+        self.listSource.setFont(font)
         self.listSource.setAcceptDrops(True)
-        self.listSource.setFrameShape(QFrame.Box)
+        self.listSource.setFrameShape(QFrame.Shape.Box)
         self.listSource.setLineWidth(2)
         self.listSource.setDragEnabled(True)
-        self.listSource.setDragDropMode(QAbstractItemView.InternalMove)
+        self.listSource.setDragDropMode(QAbstractItemView.DragDropMode.InternalMove)
         self.listSource.setAlternatingRowColors(True)
-        self.listSource.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.listSource.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         self.listSource.setSortingEnabled(True)
 
         self.horizontalLayout_listbox.addWidget(self.listSource)
@@ -342,7 +342,7 @@ class Ui_MainWindow(object):
         self.tbPreview.setObjectName(u"tbPreview")
         self.tbPreview.setFont(font3)
         self.tbPreview.setAcceptDrops(False)
-        self.tbPreview.setFrameShape(QFrame.Box)
+        self.tbPreview.setFrameShape(QFrame.Shape.Box)
         self.tbPreview.setLineWidth(2)
 
         self.horizontalLayout_listbox.addWidget(self.tbPreview)
@@ -398,7 +398,7 @@ class Ui_MainWindow(object):
         sizePolicy2.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
         self.label.setSizePolicy(sizePolicy2)
         self.label.setFont(font2)
-        self.label.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
+        self.label.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
         self.label.setMargin(1)
 
         self.horizontalLayout_preview.addWidget(self.label)
@@ -485,7 +485,7 @@ class Ui_MainWindow(object):
         self.btnProcess.setIcon(icon5)
         self.btnProcess.setIconSize(QSize(24, 24))
 
-        self.horizontalLayout_process.addWidget(self.btnProcess, 0, Qt.AlignHCenter)
+        self.horizontalLayout_process.addWidget(self.btnProcess, 0, Qt.AlignmentFlag.AlignHCenter)
 
 
         self.horizontalLayout_action_main.addLayout(self.horizontalLayout_process)
@@ -524,7 +524,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 992, 22))
+        self.menubar.setGeometry(QRect(0, 0, 992, 20))
         self.menuFile = QMenu(self.menubar)
         self.menuFile.setObjectName(u"menuFile")
         self.menuHelp = QMenu(self.menubar)
@@ -553,31 +553,31 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"Zho Converter PyRs", None))
         self.actionExit.setText(QCoreApplication.translate("MainWindow", u"Exit", None))
         self.actionAbout.setText(QCoreApplication.translate("MainWindow", u"About", None))
-        self.rbS2t.setText(QCoreApplication.translate("MainWindow", u"zh-Hans \uff08\u7c21\uff09 To Zh-Hant \uff08\u7e41\uff09", None))
-        self.rbT2s.setText(QCoreApplication.translate("MainWindow", u"zh-Hant \uff08\u7e41\uff09 To zh-Hans \uff08\u7c21\uff09", None))
+        self.rbS2t.setText(QCoreApplication.translate("MainWindow", u"zh-Hans \uff08\u7b80\uff09 To zh-Hant \uff08\u7e41\uff09", None))
+        self.rbT2s.setText(QCoreApplication.translate("MainWindow", u"zh-Hant \uff08\u7e41\uff09 To zh-Hans \uff08\u7b80\uff09", None))
         self.rbManual.setText(QCoreApplication.translate("MainWindow", u"Manual (\u81ea\u5b9a\u4e49) :", None))
-        self.cbManual.setItemText(0, QCoreApplication.translate("MainWindow", u"s2t (\u7c21 -> \u7e41)", None))
-        self.cbManual.setItemText(1, QCoreApplication.translate("MainWindow", u"s2tw (\u7c21 -> \u7e41/\u81fa)", None))
-        self.cbManual.setItemText(2, QCoreApplication.translate("MainWindow", u"s2twp (\u7c21 -> \u7e41/\u81fa/\u6163)", None))
-        self.cbManual.setItemText(3, QCoreApplication.translate("MainWindow", u"s2hk (\u7c21 -> \u7e41/\u6e2f)", None))
-        self.cbManual.setItemText(4, QCoreApplication.translate("MainWindow", u"t2s (\u7e41 -> \u7c21)", None))
-        self.cbManual.setItemText(5, QCoreApplication.translate("MainWindow", u"t2tw (\u7e41 -> \u7e41/\u81fa)", None))
-        self.cbManual.setItemText(6, QCoreApplication.translate("MainWindow", u"t2twp (\u7e41 -> \u7e41/\u81fa/\u6163)", None))
+        self.cbManual.setItemText(0, QCoreApplication.translate("MainWindow", u"s2t (\u7b80 -> \u7e41)", None))
+        self.cbManual.setItemText(1, QCoreApplication.translate("MainWindow", u"s2tw (\u7b80 -> \u7e41/\u53f0)", None))
+        self.cbManual.setItemText(2, QCoreApplication.translate("MainWindow", u"s2twp (\u7b80 -> \u7e41/\u53f0/\u60ef)", None))
+        self.cbManual.setItemText(3, QCoreApplication.translate("MainWindow", u"s2hk (\u7b80 -> \u7e41/\u6e2f)", None))
+        self.cbManual.setItemText(4, QCoreApplication.translate("MainWindow", u"t2s (\u7e41 -> \u7b80)", None))
+        self.cbManual.setItemText(5, QCoreApplication.translate("MainWindow", u"t2tw (\u7e41 -> \u7e41/\u53f0)", None))
+        self.cbManual.setItemText(6, QCoreApplication.translate("MainWindow", u"t2twp (\u7e41 -> \u7e41/\u53f0/\u60ef)", None))
         self.cbManual.setItemText(7, QCoreApplication.translate("MainWindow", u"t2hk (\u7e41 -> \u7e41/\u6e2f)", None))
-        self.cbManual.setItemText(8, QCoreApplication.translate("MainWindow", u"tw2s (\u7e41/\u81fa -> \u7c21)", None))
-        self.cbManual.setItemText(9, QCoreApplication.translate("MainWindow", u"tw2sp (\u7e41/\u81fa -> \u7c21/\u6163)", None))
-        self.cbManual.setItemText(10, QCoreApplication.translate("MainWindow", u"tw2t (\u7e41/\u81fa -> \u7e41)", None))
-        self.cbManual.setItemText(11, QCoreApplication.translate("MainWindow", u"tw2tp (\u7e41/\u81fa -> \u7e41/\u6163)", None))
-        self.cbManual.setItemText(12, QCoreApplication.translate("MainWindow", u"hk2s (\u7e41/\u6e2f -> \u7c21)", None))
+        self.cbManual.setItemText(8, QCoreApplication.translate("MainWindow", u"tw2s (\u7e41/\u53f0 -> \u7b80)", None))
+        self.cbManual.setItemText(9, QCoreApplication.translate("MainWindow", u"tw2sp (\u7e41/\u53f0 -> \u7b80/\u60ef)", None))
+        self.cbManual.setItemText(10, QCoreApplication.translate("MainWindow", u"tw2t (\u7e41/\u53f0 -> \u7e41)", None))
+        self.cbManual.setItemText(11, QCoreApplication.translate("MainWindow", u"tw2tp (\u7e41/\u53f0 -> \u7e41/\u60ef)", None))
+        self.cbManual.setItemText(12, QCoreApplication.translate("MainWindow", u"hk2s (\u7e41/\u6e2f -> \u7b80)", None))
         self.cbManual.setItemText(13, QCoreApplication.translate("MainWindow", u"hk2t (\u7e41/\u6e2f -> \u7e41)", None))
-        self.cbManual.setItemText(14, QCoreApplication.translate("MainWindow", u"jp2t (\u65e5/\u65b0 -> \u65e5/\u820a)", None))
-        self.cbManual.setItemText(15, QCoreApplication.translate("MainWindow", u"t2jp (\u65e5/\u820a -> \u65e5/\u65b0)", None))
+        self.cbManual.setItemText(14, QCoreApplication.translate("MainWindow", u"jp2t (\u65e5/\u65b0 -> \u65e5/\u65e7)", None))
+        self.cbManual.setItemText(15, QCoreApplication.translate("MainWindow", u"t2jp (\u65e5/\u65e7 -> \u65e5/\u65b0)", None))
 
-        self.rbStd.setText(QCoreApplication.translate("MainWindow", u"Standard \uff08\u6a19\u6e96\u7c21\u7e41\uff09", None))
-        self.rbZhTw.setText(QCoreApplication.translate("MainWindow", u"ZH/TW \uff08\u4e2d\u81fa\u7c21\u7e41\uff09", None))
-        self.rbHK.setText(QCoreApplication.translate("MainWindow", u"Hong Kong \uff08\u9999\u6e2f\u7c21\u7e41\uff09", None))
-        self.cbZhTw.setText(QCoreApplication.translate("MainWindow", u"ZH/TW Idioms \uff08\u901a\u7528\u8a9e\uff09", None))
-        self.cbPunct.setText(QCoreApplication.translate("MainWindow", u"Punctuations \uff08\u6a19\u9ede\uff09", None))
+        self.rbStd.setText(QCoreApplication.translate("MainWindow", u"Standard \uff08\u6807\u51c6\u7b80\u7e41\uff09", None))
+        self.rbZhTw.setText(QCoreApplication.translate("MainWindow", u"ZH/TW \uff08\u4e2d\u53f0\u7b80\u7e41\uff09", None))
+        self.rbHK.setText(QCoreApplication.translate("MainWindow", u"Hong Kong \uff08\u9999\u6e2f\u7b80\u7e41\uff09", None))
+        self.cbZhTw.setText(QCoreApplication.translate("MainWindow", u"ZH/TW Idioms \uff08\u901a\u7528\u8bed\uff09", None))
+        self.cbPunct.setText(QCoreApplication.translate("MainWindow", u"Punctuations \uff08\u6807\u70b9\uff09", None))
         self.lblSource.setText(QCoreApplication.translate("MainWindow", u"Source", None))
         self.lblSourceCode.setText("")
         self.lblCharCount.setText("")
@@ -597,7 +597,7 @@ class Ui_MainWindow(object):
 #endif // QT_CONFIG(tooltip)
         self.btnClearTbDestination.setText(QCoreApplication.translate("MainWindow", u"AC", None))
         self.btnCopy.setText(QCoreApplication.translate("MainWindow", u"Copy", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_main), QCoreApplication.translate("MainWindow", u"Single Convert \uff08\u55ae\u4ef6\uff09", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_main), QCoreApplication.translate("MainWindow", u"Single Convert \uff08\u5355\u4ef6\uff09", None))
         self.btnAdd.setText(QCoreApplication.translate("MainWindow", u"\uff0b", None))
         self.btnRemove.setText(QCoreApplication.translate("MainWindow", u"\u2014", None))
         self.btnClear.setText(QCoreApplication.translate("MainWindow", u"AC", None))
