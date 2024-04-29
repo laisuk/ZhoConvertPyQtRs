@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'form.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.7.0
+## Created by: Qt User Interface Compiler version 6.6.3
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -33,10 +33,10 @@ class Ui_MainWindow(object):
         MainWindow.resize(992, 751)
         self.actionExit = QAction(MainWindow)
         self.actionExit.setObjectName(u"actionExit")
-        self.actionExit.setMenuRole(QAction.MenuRole.TextHeuristicRole)
+        self.actionExit.setMenuRole(QAction.TextHeuristicRole)
         self.actionAbout = QAction(MainWindow)
         self.actionAbout.setObjectName(u"actionAbout")
-        self.actionAbout.setMenuRole(QAction.MenuRole.TextHeuristicRole)
+        self.actionAbout.setMenuRole(QAction.TextHeuristicRole)
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.verticalLayout_3 = QVBoxLayout(self.centralwidget)
@@ -53,14 +53,14 @@ class Ui_MainWindow(object):
         self.rbS2t.setFont(font)
         self.rbS2t.setChecked(True)
 
-        self.horizontalLayout_config.addWidget(self.rbS2t, 0, Qt.AlignmentFlag.AlignHCenter)
+        self.horizontalLayout_config.addWidget(self.rbS2t, 0, Qt.AlignHCenter)
 
         self.rbT2s = QRadioButton(self.centralwidget)
         self.buttonGroup_config.addButton(self.rbT2s)
         self.rbT2s.setObjectName(u"rbT2s")
         self.rbT2s.setFont(font)
 
-        self.horizontalLayout_config.addWidget(self.rbT2s, 0, Qt.AlignmentFlag.AlignHCenter)
+        self.horizontalLayout_config.addWidget(self.rbT2s, 0, Qt.AlignHCenter)
 
         self.rbManual = QRadioButton(self.centralwidget)
         self.buttonGroup_config.addButton(self.rbManual)
@@ -112,7 +112,7 @@ class Ui_MainWindow(object):
         self.rbStd.setFont(font2)
         self.rbStd.setChecked(True)
 
-        self.horizontalLayout_region.addWidget(self.rbStd, 0, Qt.AlignmentFlag.AlignHCenter)
+        self.horizontalLayout_region.addWidget(self.rbStd, 0, Qt.AlignHCenter)
 
         self.rbZhTw = QRadioButton(self.centralwidget)
         self.buttonGroup_region.addButton(self.rbZhTw)
@@ -120,14 +120,14 @@ class Ui_MainWindow(object):
         self.rbZhTw.setFont(font2)
         self.rbZhTw.setChecked(False)
 
-        self.horizontalLayout_region.addWidget(self.rbZhTw, 0, Qt.AlignmentFlag.AlignHCenter)
+        self.horizontalLayout_region.addWidget(self.rbZhTw, 0, Qt.AlignHCenter)
 
         self.rbHK = QRadioButton(self.centralwidget)
         self.buttonGroup_region.addButton(self.rbHK)
         self.rbHK.setObjectName(u"rbHK")
         self.rbHK.setFont(font2)
 
-        self.horizontalLayout_region.addWidget(self.rbHK, 0, Qt.AlignmentFlag.AlignHCenter)
+        self.horizontalLayout_region.addWidget(self.rbHK, 0, Qt.AlignHCenter)
 
 
         self.horizontalLayout_config_region.addLayout(self.horizontalLayout_region)
@@ -138,14 +138,14 @@ class Ui_MainWindow(object):
         self.cbZhTw.setObjectName(u"cbZhTw")
         self.cbZhTw.setFont(font2)
 
-        self.horizontalLayout_idioms.addWidget(self.cbZhTw, 0, Qt.AlignmentFlag.AlignHCenter)
+        self.horizontalLayout_idioms.addWidget(self.cbZhTw, 0, Qt.AlignHCenter)
 
         self.cbPunct = QCheckBox(self.centralwidget)
         self.cbPunct.setObjectName(u"cbPunct")
         self.cbPunct.setFont(font2)
         self.cbPunct.setChecked(True)
 
-        self.horizontalLayout_idioms.addWidget(self.cbPunct, 0, Qt.AlignmentFlag.AlignHCenter)
+        self.horizontalLayout_idioms.addWidget(self.cbPunct, 0, Qt.AlignHCenter)
 
 
         self.horizontalLayout_config_region.addLayout(self.horizontalLayout_idioms)
@@ -155,12 +155,10 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_3.addLayout(self.horizontalLayout_config_region)
 
-        self.horizontalLayout = QHBoxLayout()
-        self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.tabWidget = QTabWidget(self.centralwidget)
         self.tabWidget.setObjectName(u"tabWidget")
         self.tabWidget.setFont(font2)
-        self.tabWidget.setTabShape(QTabWidget.TabShape.Rounded)
+        self.tabWidget.setTabShape(QTabWidget.Rounded)
         self.tabWidget.setIconSize(QSize(20, 20))
         self.tab_main = QWidget()
         self.tab_main.setObjectName(u"tab_main")
@@ -176,10 +174,10 @@ class Ui_MainWindow(object):
         font3.setFamilies([u"Noto Sans CJK HK"])
         font3.setPointSize(12)
         self.tbSource.setFont(font3)
-        self.tbSource.setFrameShape(QFrame.Shape.Box)
+        self.tbSource.setFrameShape(QFrame.Box)
         self.tbSource.setLineWidth(2)
         self.tbSource.setMidLineWidth(0)
-        self.tbSource.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        self.tbSource.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
 
         self.horizontalLayout_textBox.addWidget(self.tbSource)
 
@@ -187,10 +185,10 @@ class Ui_MainWindow(object):
         self.tbDestination.setObjectName(u"tbDestination")
         self.tbDestination.setFont(font3)
         self.tbDestination.setAcceptDrops(False)
-        self.tbDestination.setFrameShape(QFrame.Shape.Box)
+        self.tbDestination.setFrameShape(QFrame.Box)
         self.tbDestination.setLineWidth(2)
         self.tbDestination.setMidLineWidth(0)
-        self.tbDestination.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        self.tbDestination.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.tbDestination.setReadOnly(True)
 
         self.horizontalLayout_textBox.addWidget(self.tbDestination)
@@ -212,9 +210,9 @@ class Ui_MainWindow(object):
         self.lblSource.setMinimumSize(QSize(80, 0))
         self.lblSource.setMaximumSize(QSize(80, 16777215))
         self.lblSource.setFont(font2)
-        self.lblSource.setFrameShape(QFrame.Shape.Box)
+        self.lblSource.setFrameShape(QFrame.Box)
         self.lblSource.setLineWidth(1)
-        self.lblSource.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.lblSource.setAlignment(Qt.AlignCenter)
 
         self.horizontalLayout_source.addWidget(self.lblSource)
 
@@ -236,7 +234,7 @@ class Ui_MainWindow(object):
         self.lblCharCount.setSizePolicy(sizePolicy1)
         self.lblCharCount.setFont(font2)
 
-        self.horizontalLayout_source.addWidget(self.lblCharCount, 0, Qt.AlignmentFlag.AlignRight)
+        self.horizontalLayout_source.addWidget(self.lblCharCount, 0, Qt.AlignRight)
 
         self.btnDetect = QPushButton(self.tab_main)
         self.btnDetect.setObjectName(u"btnDetect")
@@ -280,8 +278,8 @@ class Ui_MainWindow(object):
         self.lblDestination.setMinimumSize(QSize(80, 0))
         self.lblDestination.setMaximumSize(QSize(80, 16777215))
         self.lblDestination.setFont(font2)
-        self.lblDestination.setFrameShape(QFrame.Shape.Box)
-        self.lblDestination.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.lblDestination.setFrameShape(QFrame.Box)
+        self.lblDestination.setAlignment(Qt.AlignCenter)
 
         self.horizontalLayout_deatination.addWidget(self.lblDestination)
 
@@ -328,12 +326,12 @@ class Ui_MainWindow(object):
         self.listSource.setObjectName(u"listSource")
         self.listSource.setFont(font)
         self.listSource.setAcceptDrops(True)
-        self.listSource.setFrameShape(QFrame.Shape.Box)
+        self.listSource.setFrameShape(QFrame.Box)
         self.listSource.setLineWidth(2)
         self.listSource.setDragEnabled(True)
-        self.listSource.setDragDropMode(QAbstractItemView.DragDropMode.InternalMove)
+        self.listSource.setDragDropMode(QAbstractItemView.InternalMove)
         self.listSource.setAlternatingRowColors(True)
-        self.listSource.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
+        self.listSource.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.listSource.setSortingEnabled(True)
 
         self.horizontalLayout_listbox.addWidget(self.listSource)
@@ -342,7 +340,7 @@ class Ui_MainWindow(object):
         self.tbPreview.setObjectName(u"tbPreview")
         self.tbPreview.setFont(font3)
         self.tbPreview.setAcceptDrops(False)
-        self.tbPreview.setFrameShape(QFrame.Shape.Box)
+        self.tbPreview.setFrameShape(QFrame.Box)
         self.tbPreview.setLineWidth(2)
 
         self.horizontalLayout_listbox.addWidget(self.tbPreview)
@@ -398,7 +396,7 @@ class Ui_MainWindow(object):
         sizePolicy2.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
         self.label.setSizePolicy(sizePolicy2)
         self.label.setFont(font2)
-        self.label.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
+        self.label.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
         self.label.setMargin(1)
 
         self.horizontalLayout_preview.addWidget(self.label)
@@ -441,10 +439,7 @@ class Ui_MainWindow(object):
         icon4.addFile(u":/images/resource/icons8-documents-64.png", QSize(), QIcon.Normal, QIcon.Off)
         self.tabWidget.addTab(self.tab_batch, icon4, "")
 
-        self.horizontalLayout.addWidget(self.tabWidget)
-
-
-        self.verticalLayout_3.addLayout(self.horizontalLayout)
+        self.verticalLayout_3.addWidget(self.tabWidget)
 
         self.horizontalLayout_action_main = QHBoxLayout()
         self.horizontalLayout_action_main.setObjectName(u"horizontalLayout_action_main")
@@ -485,7 +480,7 @@ class Ui_MainWindow(object):
         self.btnProcess.setIcon(icon5)
         self.btnProcess.setIconSize(QSize(24, 24))
 
-        self.horizontalLayout_process.addWidget(self.btnProcess, 0, Qt.AlignmentFlag.AlignHCenter)
+        self.horizontalLayout_process.addWidget(self.btnProcess, 0, Qt.AlignHCenter)
 
 
         self.horizontalLayout_action_main.addLayout(self.horizontalLayout_process)
@@ -521,10 +516,11 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_3.addLayout(self.horizontalLayout_action_main)
 
+        self.verticalLayout_3.setStretch(2, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 992, 20))
+        self.menubar.setGeometry(QRect(0, 0, 992, 22))
         self.menuFile = QMenu(self.menubar)
         self.menuFile.setObjectName(u"menuFile")
         self.menuHelp = QMenu(self.menubar)
