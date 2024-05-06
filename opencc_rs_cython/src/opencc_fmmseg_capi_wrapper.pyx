@@ -18,8 +18,9 @@ CONFIG_LIST = [
 cdef class OpenCC:
     cdef void *ptr
     cdef bytes _config
+    OpenCC(bytes)
 
-    def __cinit__(self, config="s2t"):
+    def __cinit__(self, config=b"s2t"):
         self.ptr = opencc_new()
         self.config = config
 
