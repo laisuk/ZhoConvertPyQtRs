@@ -1,2 +1,22 @@
 python setup.py build_ext --inplace
-python setup.py install
+
+# Put all packages files and data to /root/opencc_fmmseg
+# pyproject.toml /root
+[project]
+name = "opencc_fmmseg"
+version = "0.1.0"
+
+[build-system]
+requires = ["setuptools>=42", "wheel", "Cython"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages]
+find = {}
+
+# MANIFEST.in /root
+graft opencc_fmmseg
+
+# Build /root
+python3.12 -m build
+pip install .\dist\opencc_fmmseg-0.1.0-py3-none-any.whl
+

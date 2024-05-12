@@ -6,7 +6,9 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QClipboard
 from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
 from opencc_rs_cython import OpenCC  # local package opencc_rs
-
+# from opencc_jieba import OpenCC
+# from opencc_fmmseg import OpenCC
+# from opencc_pyo3 import OpenCC
 # Important:
 # You need to run the following command to generate the ui_form.py file
 #     pyside6-uic form.ui -o ui_form.py, or
@@ -66,7 +68,7 @@ class MainWindow(QMainWindow):
     def detect_source_text_info(self):
         text = self.ui.tbSource.toPlainText()
         if text:
-            self.update_source_code(check_text_code(text))
+            self.update_source_code(get_text_code(text))
             self.ui.lblFilename.setText(os.path.basename(self.ui.tbSource.content_filename))
         if self.ui.tbSource.content_filename:
             self.statusBar().showMessage(f"File: {self.ui.tbSource.content_filename}")
@@ -298,7 +300,7 @@ def btn_exit_click():
     exit()
 
 
-def check_text_code(text):
+def get_text_code(text):
     return OpenCC().zho_check(text)
 
 

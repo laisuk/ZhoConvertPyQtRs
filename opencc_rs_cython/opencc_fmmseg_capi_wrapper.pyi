@@ -1,4 +1,4 @@
-# opencc_fmmseg.pyi
+# opencc_fmmseg_capi_wrapper.pyi
 
 class OpenCC:
     def __init__(self, config: str = "s2t") -> None: ...
