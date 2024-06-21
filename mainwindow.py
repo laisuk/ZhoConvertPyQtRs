@@ -8,7 +8,7 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBo
 # from opencc_rs_cython import OpenCC  # local package opencc_rs
 # from opencc_jieba import OpenCC
 # from opencc_fmmseg import OpenCC
-from opencc_rs import OpenCC
+from opencc_rsc import OpenCC
 # Important:
 # You need to run the following command to generate the ui_form.py file
 #     pyside6-uic form.ui -o ui_form.py, or

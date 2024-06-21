@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>992</width>
-    <height>751</height>
+    <height>700</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0,1,0">
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_config">
-      <item alignment="Qt::AlignHCenter">
+      <item alignment="Qt::AlignmentFlag::AlignHCenter">
        <widget class="QRadioButton" name="rbS2t">
         <property name="font">
          <font>
@@ -35,7 +35,7 @@
         </attribute>
        </widget>
       </item>
-      <item alignment="Qt::AlignHCenter">
+      <item alignment="Qt::AlignmentFlag::AlignHCenter">
        <widget class="QRadioButton" name="rbT2s">
         <property name="font">
          <font>
@@ -175,7 +175,7 @@
      <layout class="QHBoxLayout" name="horizontalLayout_config_region" stretch="3,2">
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_region">
-        <item alignment="Qt::AlignHCenter">
+        <item alignment="Qt::AlignmentFlag::AlignHCenter">
          <widget class="QRadioButton" name="rbStd">
           <property name="font">
            <font>
@@ -193,7 +193,7 @@
           </attribute>
          </widget>
         </item>
-        <item alignment="Qt::AlignHCenter">
+        <item alignment="Qt::AlignmentFlag::AlignHCenter">
          <widget class="QRadioButton" name="rbZhTw">
           <property name="font">
            <font>
@@ -211,7 +211,7 @@
           </attribute>
          </widget>
         </item>
-        <item alignment="Qt::AlignHCenter">
+        <item alignment="Qt::AlignmentFlag::AlignHCenter">
          <widget class="QRadioButton" name="rbHK">
           <property name="font">
            <font>
@@ -230,7 +230,7 @@
       </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_idioms">
-        <item alignment="Qt::AlignHCenter">
+        <item alignment="Qt::AlignmentFlag::AlignHCenter">
          <widget class="QCheckBox" name="cbZhTw">
           <property name="font">
            <font>
@@ -242,7 +242,7 @@
           </property>
          </widget>
         </item>
-        <item alignment="Qt::AlignHCenter">
+        <item alignment="Qt::AlignmentFlag::AlignHCenter">
          <widget class="QCheckBox" name="cbPunct">
           <property name="font">
            <font>
@@ -269,7 +269,7 @@
        </font>
       </property>
       <property name="tabShape">
-       <enum>QTabWidget::Rounded</enum>
+       <enum>QTabWidget::TabShape::Rounded</enum>
       </property>
       <property name="currentIndex">
        <number>0</number>
@@ -312,7 +312,7 @@
              </font>
             </property>
             <property name="frameShape">
-             <enum>QFrame::Box</enum>
+             <enum>QFrame::Shape::Box</enum>
             </property>
             <property name="lineWidth">
              <number>2</number>
@@ -321,7 +321,7 @@
              <number>0</number>
             </property>
             <property name="verticalScrollBarPolicy">
-             <enum>Qt::ScrollBarAlwaysOn</enum>
+             <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOn</enum>
             </property>
            </widget>
           </item>
@@ -337,7 +337,7 @@
              <bool>false</bool>
             </property>
             <property name="frameShape">
-             <enum>QFrame::Box</enum>
+             <enum>QFrame::Shape::Box</enum>
             </property>
             <property name="lineWidth">
              <number>2</number>
@@ -346,7 +346,7 @@
              <number>0</number>
             </property>
             <property name="verticalScrollBarPolicy">
-             <enum>Qt::ScrollBarAlwaysOn</enum>
+             <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOn</enum>
             </property>
             <property name="readOnly">
              <bool>true</bool>
@@ -385,7 +385,7 @@
                </font>
               </property>
               <property name="frameShape">
-               <enum>QFrame::Box</enum>
+               <enum>QFrame::Shape::Box</enum>
               </property>
               <property name="lineWidth">
                <number>1</number>
@@ -394,7 +394,7 @@
                <string>Source</string>
               </property>
               <property name="alignment">
-               <set>Qt::AlignCenter</set>
+               <set>Qt::AlignmentFlag::AlignCenter</set>
               </property>
              </widget>
             </item>
@@ -419,7 +419,7 @@
               </property>
              </widget>
             </item>
-            <item alignment="Qt::AlignRight">
+            <item alignment="Qt::AlignmentFlag::AlignRight">
              <widget class="QLabel" name="lblCharCount">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
@@ -539,13 +539,13 @@
                </font>
               </property>
               <property name="frameShape">
-               <enum>QFrame::Box</enum>
+               <enum>QFrame::Shape::Box</enum>
               </property>
               <property name="text">
                <string>Destination</string>
               </property>
               <property name="alignment">
-               <set>Qt::AlignCenter</set>
+               <set>Qt::AlignmentFlag::AlignCenter</set>
               </property>
              </widget>
             </item>
@@ -632,7 +632,7 @@
              <bool>true</bool>
             </property>
             <property name="frameShape">
-             <enum>QFrame::Box</enum>
+             <enum>QFrame::Shape::Box</enum>
             </property>
             <property name="lineWidth">
              <number>2</number>
@@ -641,13 +641,13 @@
              <bool>true</bool>
             </property>
             <property name="dragDropMode">
-             <enum>QAbstractItemView::InternalMove</enum>
+             <enum>QAbstractItemView::DragDropMode::InternalMove</enum>
             </property>
             <property name="alternatingRowColors">
              <bool>true</bool>
             </property>
             <property name="selectionMode">
-             <enum>QAbstractItemView::ExtendedSelection</enum>
+             <enum>QAbstractItemView::SelectionMode::ExtendedSelection</enum>
             </property>
             <property name="sortingEnabled">
              <bool>true</bool>
@@ -666,7 +666,7 @@
              <bool>false</bool>
             </property>
             <property name="frameShape">
-             <enum>QFrame::Box</enum>
+             <enum>QFrame::Shape::Box</enum>
             </property>
             <property name="lineWidth">
              <number>2</number>
@@ -762,7 +762,7 @@
                <string>Output:</string>
               </property>
               <property name="alignment">
-               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+               <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
               </property>
               <property name="margin">
                <number>1</number>
@@ -891,7 +891,7 @@
       </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_process">
-        <item alignment="Qt::AlignHCenter">
+        <item alignment="Qt::AlignmentFlag::AlignHCenter">
          <widget class="QPushButton" name="btnProcess">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -933,7 +933,7 @@
         <item>
          <spacer name="horizontalSpacer">
           <property name="orientation">
-           <enum>Qt::Horizontal</enum>
+           <enum>Qt::Orientation::Horizontal</enum>
           </property>
           <property name="sizeHint" stdset="0">
            <size>
@@ -991,7 +991,7 @@
      <x>0</x>
      <y>0</y>
      <width>992</width>
-     <height>22</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1021,7 +1021,7 @@
     <string>Exit</string>
    </property>
    <property name="menuRole">
-    <enum>QAction::TextHeuristicRole</enum>
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
    </property>
   </action>
   <action name="actionAbout">
@@ -1029,7 +1029,7 @@
     <string>About</string>
    </property>
    <property name="menuRole">
-    <enum>QAction::TextHeuristicRole</enum>
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
    </property>
   </action>
  </widget>
@@ -1050,7 +1050,7 @@
  </resources>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup_config"/>
   <buttongroup name="buttonGroup_region"/>
+  <buttongroup name="buttonGroup_config"/>
  </buttongroups>
 </ui>
