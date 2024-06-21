@@ -1,6 +1,6 @@
 import sys
 import pyperclip as pc
-from opencc_rs_cython import OpenCC
+from opencc_rsc import OpenCC
 
 RED = "\033[1;31m"
 GREEN = "\033[1;32m"
