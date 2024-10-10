@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>992</width>
+    <width>990</width>
     <height>700</height>
    </rect>
   </property>
@@ -17,7 +17,7 @@
    <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0,1,0">
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_config">
-      <item alignment="Qt::AlignmentFlag::AlignHCenter">
+      <item>
        <widget class="QRadioButton" name="rbS2t">
         <property name="font">
          <font>
@@ -35,7 +35,7 @@
         </attribute>
        </widget>
       </item>
-      <item alignment="Qt::AlignmentFlag::AlignHCenter">
+      <item>
        <widget class="QRadioButton" name="rbT2s">
         <property name="font">
          <font>
@@ -175,7 +175,7 @@
      <layout class="QHBoxLayout" name="horizontalLayout_config_region" stretch="3,2">
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_region">
-        <item alignment="Qt::AlignmentFlag::AlignHCenter">
+        <item>
          <widget class="QRadioButton" name="rbStd">
           <property name="font">
            <font>
@@ -193,7 +193,7 @@
           </attribute>
          </widget>
         </item>
-        <item alignment="Qt::AlignmentFlag::AlignHCenter">
+        <item>
          <widget class="QRadioButton" name="rbZhTw">
           <property name="font">
            <font>
@@ -211,7 +211,7 @@
           </attribute>
          </widget>
         </item>
-        <item alignment="Qt::AlignmentFlag::AlignHCenter">
+        <item>
          <widget class="QRadioButton" name="rbHK">
           <property name="font">
            <font>
@@ -230,7 +230,7 @@
       </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_idioms">
-        <item alignment="Qt::AlignmentFlag::AlignHCenter">
+        <item>
          <widget class="QCheckBox" name="cbZhTw">
           <property name="font">
            <font>
@@ -242,7 +242,7 @@
           </property>
          </widget>
         </item>
-        <item alignment="Qt::AlignmentFlag::AlignHCenter">
+        <item>
          <widget class="QCheckBox" name="cbPunct">
           <property name="font">
            <font>
@@ -265,7 +265,7 @@
      <widget class="QTabWidget" name="tabWidget">
       <property name="font">
        <font>
-        <pointsize>10</pointsize>
+        <pointsize>12</pointsize>
        </font>
       </property>
       <property name="tabShape">
@@ -305,12 +305,6 @@
           </property>
           <item>
            <widget class="TextEditWidget" name="tbSource">
-            <property name="font">
-             <font>
-              <family>Noto Sans CJK HK</family>
-              <pointsize>12</pointsize>
-             </font>
-            </property>
             <property name="frameShape">
              <enum>QFrame::Shape::Box</enum>
             </property>
@@ -321,18 +315,12 @@
              <number>0</number>
             </property>
             <property name="verticalScrollBarPolicy">
-             <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOn</enum>
+             <enum>Qt::ScrollBarPolicy::ScrollBarAsNeeded</enum>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QPlainTextEdit" name="tbDestination">
-            <property name="font">
-             <font>
-              <family>Noto Sans CJK HK</family>
-              <pointsize>12</pointsize>
-             </font>
-            </property>
             <property name="acceptDrops">
              <bool>false</bool>
             </property>
@@ -346,7 +334,7 @@
              <number>0</number>
             </property>
             <property name="verticalScrollBarPolicy">
-             <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOn</enum>
+             <enum>Qt::ScrollBarPolicy::ScrollBarAsNeeded</enum>
             </property>
             <property name="readOnly">
              <bool>true</bool>
@@ -419,7 +407,7 @@
               </property>
              </widget>
             </item>
-            <item alignment="Qt::AlignmentFlag::AlignRight">
+            <item>
              <widget class="QLabel" name="lblCharCount">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
@@ -434,6 +422,9 @@
               </property>
               <property name="text">
                <string/>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
               </property>
              </widget>
             </item>
@@ -656,14 +647,8 @@
           </item>
           <item>
            <widget class="QPlainTextEdit" name="tbPreview">
-            <property name="font">
-             <font>
-              <family>Noto Sans CJK HK</family>
-              <pointsize>12</pointsize>
-             </font>
-            </property>
             <property name="acceptDrops">
-             <bool>false</bool>
+             <bool>true</bool>
             </property>
             <property name="frameShape">
              <enum>QFrame::Shape::Box</enum>
@@ -761,9 +746,6 @@
               <property name="text">
                <string>Output:</string>
               </property>
-              <property name="alignment">
-               <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
-              </property>
               <property name="margin">
                <number>1</number>
               </property>
@@ -843,9 +825,6 @@
       <property name="leftMargin">
        <number>10</number>
       </property>
-      <property name="topMargin">
-       <number>10</number>
-      </property>
       <property name="rightMargin">
        <number>10</number>
       </property>
@@ -891,7 +870,7 @@
       </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_process">
-        <item alignment="Qt::AlignmentFlag::AlignHCenter">
+        <item>
          <widget class="QPushButton" name="btnProcess">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -937,8 +916,8 @@
           </property>
           <property name="sizeHint" stdset="0">
            <size>
-            <width>40</width>
-            <height>20</height>
+            <width>20</width>
+            <height>40</height>
            </size>
           </property>
          </spacer>
@@ -990,8 +969,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>992</width>
-     <height>20</height>
+     <width>990</width>
+     <height>33</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1021,7 +1000,7 @@
     <string>Exit</string>
    </property>
    <property name="menuRole">
-    <enum>QAction::MenuRole::TextHeuristicRole</enum>
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionAbout">
@@ -1029,7 +1008,7 @@
     <string>About</string>
    </property>
    <property name="menuRole">
-    <enum>QAction::MenuRole::TextHeuristicRole</enum>
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
  </widget>
@@ -1050,7 +1029,7 @@
  </resources>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup_region"/>
   <buttongroup name="buttonGroup_config"/>
+  <buttongroup name="buttonGroup_region"/>
  </buttongroups>
 </ui>

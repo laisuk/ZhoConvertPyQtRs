@@ -1,6 +1,6 @@
 import sys
 import pyperclip as pc
-from opencc_rsc import OpenCC
+from opencc_rs import OpenCC
 
 RED = "\033[1;31m"
 GREEN = "\033[1;32m"
@@ -48,19 +48,19 @@ def main():
     auto_detect = ""
     if config == "auto":
         auto_detect = " (auto)"
-        match OpenCC().zho_check(input_text):
-            case 1:
-                config = "t2s"
-                display_input_code = "Traditional 繁体"
-                display_output_code = "Simplified 简体"
-            case 2:
-                config = "s2t"
-                display_input_code = "Simplified 简体"
-                display_output_code = "Traditional 繁体"
-            case _:
-                config = "s2t"
-                display_input_code = "Others 其它"
-                display_output_code = "Others 其它"
+        text_code = OpenCC().zho_check(input_text)
+        if text_code == 1:
+            config = "t2s"
+            display_input_code = "Traditional 繁体"
+            display_output_code = "Simplified 简体"
+        elif text_code == 2:
+            config = "s2t"
+            display_input_code = "Simplified 简体"
+            display_output_code = "Traditional 繁体"
+        else:
+            config = "s2t"
+            display_input_code = "Others 其它"
+            display_output_code = "Others 其它"
 
     # Initialized conversion config
     converter = OpenCC(config)

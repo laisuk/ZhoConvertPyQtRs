@@ -6,9 +6,8 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QClipboard
 from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
 # from opencc_rs_cython import OpenCC  # local package opencc_rs
-# from opencc_jieba import OpenCC
 # from opencc_fmmseg import OpenCC
-from opencc_rsc import OpenCC
+from opencc_rs import OpenCC
 # Important:
 # You need to run the following command to generate the ui_form.py file
 #     pyside6-uic form.ui -o ui_form.py, or
@@ -52,15 +51,14 @@ class MainWindow(QMainWindow):
         QMessageBox.about(self, "About", "Zho Converter version 1.0.0 (c) 2024 Bryan Lai")
 
     def tab_bar_changed(self, index: int) -> None:
-        match index:
-            case 0:
-                self.ui.btnOpenFile.setEnabled(True)
-                self.ui.lblFilename.setEnabled(True)
-                self.ui.btnSaveAs.setEnabled(True)
-            case 1:
-                self.ui.btnOpenFile.setEnabled(False)
-                self.ui.lblFilename.setEnabled(False)
-                self.ui.btnSaveAs.setEnabled(False)
+        if index == 0:
+            self.ui.btnOpenFile.setEnabled(True)
+            self.ui.lblFilename.setEnabled(True)
+            self.ui.btnSaveAs.setEnabled(True)
+        elif index == 1:
+            self.ui.btnOpenFile.setEnabled(False)
+            self.ui.lblFilename.setEnabled(False)
+            self.ui.btnSaveAs.setEnabled(False)
 
     def update_char_count(self):
         self.ui.lblCharCount.setText(f"[ {len(self.ui.tbSource.document().toPlainText()):,} chars ]")
@@ -85,6 +83,7 @@ class MainWindow(QMainWindow):
 
     def btn_paste_click(self):
         if not QClipboard().text():
+            self.ui.statusbar.showMessage("Clipboard empty")
             return
         self.ui.tbSource.clear()
         self.ui.tbSource.paste()
@@ -176,6 +175,7 @@ class MainWindow(QMainWindow):
                 msg = QMessageBox(QMessageBox.Icon.Information, "Attention", "Invalid output directory.")
                 msg.setInformativeText("Output directory:\n" + out_dir + "\nnot found.")
                 msg.exec()
+                self.ui.lineEditDir.setFocus()
                 self.ui.statusbar.showMessage("Invalid output directory.")
             else:
                 self.ui.tbPreview.clear()
@@ -202,15 +202,14 @@ class MainWindow(QMainWindow):
                 self.ui.statusbar.showMessage("Process completed")
 
     def update_source_code(self, text_code):
-        match text_code:
-            case 1:
-                self.ui.lblSourceCode.setText("zh-Hant (繁体)")
-                self.ui.rbT2s.setChecked(True)
-            case 2:
-                self.ui.lblSourceCode.setText("zh-Hans (简体)")
-                self.ui.rbS2t.setChecked(True)
-            case _:
-                self.ui.lblSourceCode.setText("Non-zh (其它)")
+        if text_code == 1:
+            self.ui.lblSourceCode.setText("zh-Hant (繁体)")
+            self.ui.rbT2s.setChecked(True)
+        elif text_code == 2:
+            self.ui.lblSourceCode.setText("zh-Hans (简体)")
+            self.ui.rbS2t.setChecked(True)
+        else:
+            self.ui.lblSourceCode.setText("Non-zh (其它)")
 
     def btn_savefile_click(self):
         filename = QFileDialog.getSaveFileName(
@@ -306,6 +305,7 @@ def get_text_code(text):
 
 if __name__ == "__main__":
     app = QApplication()
+    app.setStyle("WindowsVista")
     widget = MainWindow()
     widget.show()
     sys.exit(app.exec())
