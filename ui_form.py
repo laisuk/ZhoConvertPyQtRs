@@ -205,7 +205,7 @@ class Ui_MainWindow(object):
         self.lblSource.setMinimumSize(QSize(80, 0))
         self.lblSource.setMaximumSize(QSize(80, 16777215))
         self.lblSource.setFont(font2)
-        self.lblSource.setFrameShape(QFrame.Shape.Box)
+        self.lblSource.setFrameShape(QFrame.Shape.StyledPanel)
         self.lblSource.setLineWidth(1)
         self.lblSource.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
@@ -228,7 +228,6 @@ class Ui_MainWindow(object):
         sizePolicy1.setHeightForWidth(self.lblCharCount.sizePolicy().hasHeightForWidth())
         self.lblCharCount.setSizePolicy(sizePolicy1)
         self.lblCharCount.setFont(font2)
-        self.lblCharCount.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
 
         self.horizontalLayout_source.addWidget(self.lblCharCount)
 
@@ -274,7 +273,7 @@ class Ui_MainWindow(object):
         self.lblDestination.setMinimumSize(QSize(80, 0))
         self.lblDestination.setMaximumSize(QSize(80, 16777215))
         self.lblDestination.setFont(font2)
-        self.lblDestination.setFrameShape(QFrame.Shape.Box)
+        self.lblDestination.setFrameShape(QFrame.Shape.StyledPanel)
         self.lblDestination.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.horizontalLayout_deatination.addWidget(self.lblDestination)
@@ -325,7 +324,7 @@ class Ui_MainWindow(object):
         self.listSource.setFrameShape(QFrame.Shape.Box)
         self.listSource.setLineWidth(2)
         self.listSource.setDragEnabled(True)
-        self.listSource.setDragDropMode(QAbstractItemView.DragDropMode.InternalMove)
+        self.listSource.setDragDropMode(QAbstractItemView.DragDropMode.NoDragDrop)
         self.listSource.setAlternatingRowColors(True)
         self.listSource.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         self.listSource.setSortingEnabled(True)
