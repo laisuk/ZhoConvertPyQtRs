@@ -296,8 +296,7 @@ class MainWindow(QMainWindow):
 
 
 def btn_exit_click():
-    exit()
-
+    QApplication.quit()
 
 def get_text_code(text):
     return OpenCC().zho_check(text)
