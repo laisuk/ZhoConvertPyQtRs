@@ -1,36 +1,21 @@
+import platform
 import sys
-import subprocess
+
 # import pyperclip as pc
 from opencc_rs import OpenCC
+
+if platform.system() == 'Windows':
+    from clipboard_win import get_clipboard_text, set_clipboard_text
+elif platform.system() == 'Linux':
+    from clipboard_linux import get_clipboard_text, set_clipboard_text
+else:
+    pass
 
 RED = "\033[1;31m"
 GREEN = "\033[1;32m"
 YELLOW = "\033[1;33m"
 BLUE = "\033[1;34m"
 RESET = "\033[0m"
-
-
-def get_clipboard_text():
-    try:
-        result = subprocess.run(['xclip', '-selection', 'clipboard', '-o'],
-                                check=True,
-                                stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE,
-                                text=True)
-        return result.stdout
-    except subprocess.CalledProcessError as e:
-        print(f"Failed to get clipboard text: {e.stderr}")
-        return ""
-
-
-def set_clipboard_text(text):
-    try:
-        subprocess.run(['xclip', '-selection', 'clipboard'],
-                       input=text,
-                       check=True,
-                       text=True)
-    except subprocess.CalledProcessError as e:
-        print(f"Failed to set clipboard text: {e.stderr}")
 
 
 def main():
