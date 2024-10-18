@@ -1,5 +1,6 @@
 import sys
-import pyperclip as pc
+import subprocess
+# import pyperclip as pc
 from opencc_rs import OpenCC
 
 RED = "\033[1;31m"
@@ -7,6 +8,29 @@ GREEN = "\033[1;32m"
 YELLOW = "\033[1;33m"
 BLUE = "\033[1;34m"
 RESET = "\033[0m"
+
+
+def get_clipboard_text():
+    try:
+        result = subprocess.run(['xclip', '-selection', 'clipboard', '-o'],
+                                check=True,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE,
+                                text=True)
+        return result.stdout
+    except subprocess.CalledProcessError as e:
+        print(f"Failed to get clipboard text: {e.stderr}")
+        return ""
+
+
+def set_clipboard_text(text):
+    try:
+        subprocess.run(['xclip', '-selection', 'clipboard'],
+                       input=text,
+                       check=True,
+                       text=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Failed to set clipboard text: {e.stderr}")
 
 
 def main():
@@ -39,8 +63,9 @@ def main():
             display_output_code = "Traditional 繁体"
 
     # Paste from clipboard
-    input_text = pc.paste()
+    # input_text = pc.paste()
     # input_text = Tk().clipboard_get()
+    input_text = get_clipboard_text()
     if input_text == "":
         print(f"{RED}Clipboard is empty{RESET}")
         return
@@ -78,7 +103,8 @@ def main():
     print(f"{GREEN}== Clipboard Set Text ({display_output_code}) =={YELLOW}\n{display_output}{etc}{RESET}")
     print(f"{BLUE}(Total {len(output_text):,} chars converted){RESET}")
     # Copy converted contents to clipboard
-    pc.copy(output_text)
+    # pc.copy(output_text)
+    set_clipboard_text(output_text)
 
 
 if __name__ == "__main__":
