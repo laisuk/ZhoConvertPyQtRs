@@ -163,7 +163,7 @@ class MainWindow(QMainWindow):
                 else:
                     self.ui.lblDestinationCode.setText(self.ui.lblSourceCode.text())
 
-            self.ui.statusbar.showMessage("Process completed")
+            self.ui.statusbar.showMessage(f"Process completed ( {config} )")
 
         if self.ui.tabWidget.currentIndex() == 1:
             if self.ui.listSource.count() == 0:
