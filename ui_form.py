@@ -228,6 +228,7 @@ class Ui_MainWindow(object):
         sizePolicy1.setHeightForWidth(self.lblCharCount.sizePolicy().hasHeightForWidth())
         self.lblCharCount.setSizePolicy(sizePolicy1)
         self.lblCharCount.setFont(font2)
+        self.lblCharCount.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
 
         self.horizontalLayout_source.addWidget(self.lblCharCount)
 
