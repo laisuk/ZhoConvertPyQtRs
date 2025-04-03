@@ -3,8 +3,9 @@ import os
 import sys
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QClipboard
+from PySide6.QtGui import QGuiApplication
 from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
+
 # from opencc_rs_cython import OpenCC  # local package opencc_rs
 # from opencc_pyo3 import OpenCC
 from opencc_rs import OpenCC
@@ -82,7 +83,7 @@ class MainWindow(QMainWindow):
             self.ui.rbZhTw.setChecked(True)
 
     def btn_paste_click(self):
-        if not QClipboard().text():
+        if not QGuiApplication.clipboard().text():
             self.ui.statusbar.showMessage("Clipboard empty")
             return
         self.ui.tbSource.clear()
@@ -95,7 +96,7 @@ class MainWindow(QMainWindow):
         text = self.ui.tbDestination.toPlainText()
         if not text:
             return None
-        QClipboard().setText(text)
+        QGuiApplication.clipboard().setText(text)
         self.ui.statusbar.showMessage("Contents copied to clipboard")
 
     def btn_openfile_click(self):
