@@ -95,7 +95,7 @@ class MainWindow(QMainWindow):
     def btn_copy_click(self):
         text = self.ui.tbDestination.toPlainText()
         if not text:
-            return None
+            return
         QGuiApplication.clipboard().setText(text)
         self.ui.statusbar.showMessage("Contents copied to clipboard")
 
