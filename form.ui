@@ -970,7 +970,7 @@
      <x>0</x>
      <y>0</y>
      <width>990</width>
-     <height>33</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
