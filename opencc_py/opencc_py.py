@@ -114,7 +114,7 @@ class OpenCC:
             self.dictionary.ts_characters
         ])
         output = refs.apply_segment_replace(input_text, self.segment_replace)
-        return self.convert_punctuation(output, "s") if punctuation else output
+        return self.convert_punctuation(output, "t") if punctuation else output
 
     def s2tw(self, input_text: str, punctuation: bool = False) -> str:
         refs = DictRefs([
@@ -135,7 +135,7 @@ class OpenCC:
             self.dictionary.ts_characters
         ])
         output = refs.apply_segment_replace(input_text, self.segment_replace)
-        return self.convert_punctuation(output, "s") if punctuation else output
+        return self.convert_punctuation(output, "t") if punctuation else output
 
     def s2twp(self, input_text: str, punctuation: bool = False) -> str:
         refs = DictRefs([
@@ -159,7 +159,7 @@ class OpenCC:
             self.dictionary.ts_characters
         ])
         output = refs.apply_segment_replace(input_text, self.segment_replace)
-        return self.convert_punctuation(output, "s") if punctuation else output
+        return self.convert_punctuation(output, "t") if punctuation else output
 
     def s2hk(self, input_text: str, punctuation: bool = False) -> str:
         refs = DictRefs([
@@ -180,33 +180,33 @@ class OpenCC:
             self.dictionary.ts_characters
         ])
         output = refs.apply_segment_replace(input_text, self.segment_replace)
-        return self.convert_punctuation(output, "s") if punctuation else output
+        return self.convert_punctuation(output, "t") if punctuation else output
 
-    def t2tw(self, input_text: str, punctuation: bool = False) -> str:
+    def t2tw(self, input_text: str) -> str:
         refs = DictRefs([
             self.dictionary.tw_variants
         ])
         output = refs.apply_segment_replace(input_text, self.segment_replace)
-        return self.convert_punctuation(output, "s") if punctuation else output
+        return output
 
-    def t2twp(self, input_text: str, punctuation: bool = False) -> str:
+    def t2twp(self, input_text: str) -> str:
         refs = DictRefs([
             self.dictionary.tw_phrases
         ]).with_round_2([
             self.dictionary.tw_variants
         ])
         output = refs.apply_segment_replace(input_text, self.segment_replace)
-        return self.convert_punctuation(output, "s") if punctuation else output
+        return output
 
-    def tw2t(self, input_text: str, punctuation: bool = False) -> str:
+    def tw2t(self, input_text: str) -> str:
         refs = DictRefs([
             self.dictionary.tw_variants_rev_phrases,
             self.dictionary.tw_variants_rev
         ])
         output = refs.apply_segment_replace(input_text, self.segment_replace)
-        return self.convert_punctuation(output, "s") if punctuation else output
+        return  output
 
-    def tw2tp(self, input_text: str, punctuation: bool = False) -> str:
+    def tw2tp(self, input_text: str) -> str:
         refs = DictRefs([
             self.dictionary.tw_variants_rev_phrases,
             self.dictionary.tw_variants_rev
@@ -214,38 +214,38 @@ class OpenCC:
             self.dictionary.tw_phrases_rev
         ])
         output = refs.apply_segment_replace(input_text, self.segment_replace)
-        return self.convert_punctuation(output, "s") if punctuation else output
+        return output
 
-    def t2hk(self, input_text: str, punctuation: bool = False) -> str:
+    def t2hk(self, input_text: str) -> str:
         refs = DictRefs([
             self.dictionary.hk_variants
         ])
         output = refs.apply_segment_replace(input_text, self.segment_replace)
-        return self.convert_punctuation(output, "s") if punctuation else output
+        return output
 
-    def hk2t(self, input_text: str, punctuation: bool = False) -> str:
+    def hk2t(self, input_text: str) -> str:
         refs = DictRefs([
             self.dictionary.hk_variants_rev_phrases,
             self.dictionary.hk_variants_rev
         ])
         output = refs.apply_segment_replace(input_text, self.segment_replace)
-        return self.convert_punctuation(output, "s") if punctuation else output
+        return output
 
-    def t2jp(self, input_text: str, punctuation: bool = False) -> str:
+    def t2jp(self, input_text: str) -> str:
         refs = DictRefs([
             self.dictionary.jp_variants
         ])
         output = refs.apply_segment_replace(input_text, self.segment_replace)
-        return self.convert_punctuation(output, "s") if punctuation else output
+        return output
 
-    def jp2t(self, input_text: str, punctuation: bool = False) -> str:
+    def jp2t(self, input_text: str) -> str:
         refs = DictRefs([
             self.dictionary.jps_phrases,
             self.dictionary.jps_characters,
             self.dictionary.jp_variants_rev
         ])
         output = refs.apply_segment_replace(input_text, self.segment_replace)
-        return self.convert_punctuation(output, "s") if punctuation else output
+        return output
 
     def convert(self, input_text: str, punctuation: bool = False) -> str:
         config = self.config.lower()
