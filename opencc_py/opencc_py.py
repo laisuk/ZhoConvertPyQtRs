@@ -66,14 +66,15 @@ class OpenCC:
 
         result = []
         i = 0
-        while i < len(text_chars):
-            best_match = ""
+        text_chars_len = len(text_chars)
+        while i < text_chars_len:
+            best_match = None
             best_length = 0
-            for length in range(min(max_word_length, len(text_chars) - i), 0, -1):
+            for length in range(min(max_word_length, text_chars_len - i), 0, -1):
                 word = "".join(text_chars[i:i + length])
                 for d, _ in dictionaries:
-                    if word in d:
-                        best_match = d[word]
+                    if (match := d.get(word)) is not None:
+                        best_match = match
                         best_length = length
                         break
                 if best_length:
@@ -204,7 +205,7 @@ class OpenCC:
             self.dictionary.tw_variants_rev
         ])
         output = refs.apply_segment_replace(input_text, self.segment_replace)
-        return  output
+        return output
 
     def tw2tp(self, input_text: str) -> str:
         refs = DictRefs([
@@ -315,27 +316,21 @@ class OpenCC:
             return 0
 
     @staticmethod
-    def convert_punctuation(input_text, config):
-        # Declare a dictionary to store the characters and their mappings
-        s2t_punctuation_chars = {
+    def convert_punctuation(input_text: str, config: str) -> str:
+        s2t = {
             '“': '「',
             '”': '」',
             '‘': '『',
-            '’': '』'
+            '’': '』',
         }
-        # Use the join method to create the regular expression patterns
-        if config[0] == "s":
-            pattern = f"[{''.join(s2t_punctuation_chars.keys())}]"  # "[“”‘’]"
-            output_text = re.sub(
-                pattern, lambda m: s2t_punctuation_chars[m.group(0)], input_text)
-        else:
-            # Use the dict comprehension to reverse the dictionary
-            t2s_punctuation_chars = {v: k for k, v in s2t_punctuation_chars.items()}
-            pattern = f"[{''.join(t2s_punctuation_chars.keys())}]"  # "[「」『』]"
-            output_text = re.sub(
-                pattern, lambda m: t2s_punctuation_chars[m.group(0)], input_text)
 
-        return output_text
+        if config[0] == 's':
+            pattern = "[" + "".join(re.escape(c) for c in s2t.keys()) + "]"
+            return re.sub(pattern, lambda m: s2t[m.group()], input_text)
+        else:
+            t2s = {v: k for k, v in s2t.items()}
+            pattern = "[" + "".join(re.escape(c) for c in t2s.keys()) + "]"
+            return re.sub(pattern, lambda m: t2s[m.group()], input_text)
 
 
 def find_max_utf8_length(s: str, max_byte_count: int) -> int:
