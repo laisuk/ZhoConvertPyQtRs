@@ -52,16 +52,25 @@ class OpenCC:
     def get_last_error(self):
         return self._last_error
 
+    # def segment_replace(self, text: str, dictionaries: List[Tuple[Dict[str, str], int]]) -> str:
+    #     max_word_length = max((length for _, length in dictionaries), default=1)
+    #     split_chunks = self.split_string_inclusive(text)
+    #     return "".join(self.convert_by(chunk, dictionaries, max_word_length) for chunk in split_chunks)
+
     def segment_replace(self, text: str, dictionaries: List[Tuple[Dict[str, str], int]]) -> str:
         max_word_length = max((length for _, length in dictionaries), default=1)
-        split_chunks = self.split_string_inclusive(text)
-        return "".join(self.convert_by(chunk, dictionaries, max_word_length) for chunk in split_chunks)
+        ranges = self.get_split_ranges(text)
+        return "".join(
+            self.convert_by(list(text[start:end]), dictionaries, max_word_length)
+            for start, end in ranges
+        )
 
     def convert_by(self, text_chars: List[str], dictionaries, max_word_length: int) -> str:
         if not text_chars:
             return ""
 
-        if len(text_chars) == 1 and text_chars[0] in self.delimiters:
+        delimiters = self.delimiters  # Local variable for speed
+        if len(text_chars) == 1 and text_chars[0] in delimiters:
             return text_chars[0]
 
         result = []
@@ -70,10 +79,12 @@ class OpenCC:
         while i < text_chars_len:
             best_match = None
             best_length = 0
+            # Use local variable for dictionaries
             for length in range(min(max_word_length, text_chars_len - i), 0, -1):
                 word = "".join(text_chars[i:i + length])
                 for d, _ in dictionaries:
-                    if (match := d.get(word)) is not None:
+                    match = d.get(word)
+                    if match is not None:
                         best_match = match
                         best_length = length
                         break
@@ -86,17 +97,32 @@ class OpenCC:
             i += best_length
         return "".join(result)
 
-    def split_string_inclusive(self, text: str) -> List[List[str]]:
-        chunks = []
-        current = []
-        for ch in text:
-            current.append(ch)
+    # def split_string_inclusive(self, text: str) -> List[List[str]]:
+    #     chunks = []
+    #     current = []
+    #     for ch in text:
+    #         current.append(ch)
+    #         if ch in self.delimiters:
+    #             chunks.append(current)
+    #             current = []
+    #     if current:
+    #         chunks.append(current)
+    #     return chunks
+
+    def get_split_ranges(self, text: str) -> List[Tuple[int, int]]:
+        """
+        Returns a list of (start, end) index tuples, where each tuple represents
+        the start (inclusive) and end (exclusive) indices of a chunk in the text.
+        """
+        ranges = []
+        start = 0
+        for i, ch in enumerate(text):
             if ch in self.delimiters:
-                chunks.append(current)
-                current = []
-        if current:
-            chunks.append(current)
-        return chunks
+                ranges.append((start, i + 1))  # include the delimiter
+                start = i + 1
+        if start < len(text):
+            ranges.append((start, len(text)))
+        return ranges
 
     def s2t(self, input_text: str, punctuation: bool = False) -> str:
         if not input_text:
@@ -324,13 +350,21 @@ class OpenCC:
             '’': '』',
         }
 
+        t2s = {
+            '「': '“',
+            '」': '”',
+            '『': '‘',
+            '』': '’',
+        }
+
         if config[0] == 's':
+            mapping = s2t
             pattern = "[" + "".join(re.escape(c) for c in s2t.keys()) + "]"
-            return re.sub(pattern, lambda m: s2t[m.group()], input_text)
         else:
-            t2s = {v: k for k, v in s2t.items()}
             pattern = "[" + "".join(re.escape(c) for c in t2s.keys()) + "]"
-            return re.sub(pattern, lambda m: t2s[m.group()], input_text)
+            mapping = t2s
+
+        return re.sub(pattern, lambda m: mapping[m.group()], input_text)
 
 
 def find_max_utf8_length(s: str, max_byte_count: int) -> int:

@@ -32,23 +32,23 @@ class OpenCC:
         self.lib.opencc_zho_check.argtypes = [ctypes.c_void_p, ctypes.c_char_p]
         self.lib.opencc_string_free.argtypes = [ctypes.c_void_p]
         self.lib.opencc_string_free.restype = None
-        self.lib.opencc_free.argtypes = [ctypes.c_void_p]
-        self.lib.opencc_free.restype = None
+        self.lib.opencc_delete.argtypes = [ctypes.c_void_p]
+        self.lib.opencc_delete.restype = None
 
-        self._opencc_ptr = self.lib.opencc_new()  # Create the opencc object in the constructor
-        if self._opencc_ptr is None:
+        self._openccInstance = self.lib.opencc_new()  # Create the opencc object in the constructor
+        if self._openccInstance is None:
             raise RuntimeError("Failed to create OpenCC converter")
 
     def __del__(self):
-        if hasattr(self, '_opencc_ptr') and self._opencc_ptr is not None:
-            self.lib.opencc_free(self._opencc_ptr)  # Free the opencc object in the destructor
+        if hasattr(self, '_openccInstance') and self._openccInstance is not None:
+            self.lib.opencc_delete(self._openccInstance)  # Free the opencc object in the destructor
 
     def convert(self, text, punctuation=False):
-        if not hasattr(self, '_opencc_ptr') or self._opencc_ptr is None:
+        if not hasattr(self, '_openccInstance') or self._openccInstance is None:
             raise RuntimeError("OpenCC converter not initialized")
         input_bytes = text.encode('utf-8')
         config_bytes = self.config.encode('utf-8')
-        result = self.lib.opencc_convert(self._opencc_ptr, input_bytes, config_bytes, punctuation)
+        result = self.lib.opencc_convert(self._openccInstance, input_bytes, config_bytes, punctuation)
         if result:
             py_result = ctypes.string_at(result).decode('utf-8')
             self.lib.opencc_string_free(result)
@@ -56,7 +56,7 @@ class OpenCC:
         return text  # Or handle the error appropriately
 
     def zho_check(self, text):
-        if not hasattr(self, '_opencc_ptr') or self._opencc_ptr is None:
+        if not hasattr(self, '_openccInstance') or self._openccInstance is None:
             raise RuntimeError("OpenCC converter not initialized")
-        code = self.lib.opencc_zho_check(self._opencc_ptr, text.encode('utf-8'))
+        code = self.lib.opencc_zho_check(self._openccInstance, text.encode('utf-8'))
         return code

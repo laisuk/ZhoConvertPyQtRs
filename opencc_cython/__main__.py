@@ -3,7 +3,7 @@ from __future__ import print_function
 import argparse
 import sys
 import io
-from opencc_rs_cython import OpenCC
+from opencc_cython import OpenCC
 
 
 def main():

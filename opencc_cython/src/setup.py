@@ -7,13 +7,17 @@ import platform
 system = platform.system()
 extra_link_args = []
 if system == "Linux":
+    library = ["opencc_fmmseg_capi"]
     extra_link_args = ["-Wl,-rpath,$ORIGIN"]
 elif system == "Darwin":
+    library = ["opencc_fmmseg_capi"]
     extra_link_args = ["-Wl,-rpath,@loader_path"]
+elif system == "Windows":
+    library = ["opencc_fmmseg_capi.dll"]
 
 extensions = [
     Extension("opencc_fmmseg_capi_wrapper", ["opencc_fmmseg_capi_wrapper.pyx"],
-              libraries=["opencc_fmmseg_capi"],
+              libraries=library,
               include_dirs=["."],
               library_dirs=["."],
               extra_link_args=extra_link_args

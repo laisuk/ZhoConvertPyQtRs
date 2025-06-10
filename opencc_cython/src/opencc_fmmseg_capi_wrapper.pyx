@@ -6,9 +6,10 @@ cdef extern from "opencc_fmmseg_capi.h":
     bint opencc_get_parallel(const void *instance)
     void opencc_set_parallel(const void *instance, bint is_parallel)
     int opencc_zho_check(const void *instance, const char *input_text)
-    void opencc_free(const void *instance)
+    void opencc_delete(const void *instance)
     void opencc_string_free(const char *ptr)
     char *opencc_last_error()
+    void opencc_error_free(const char *ptr)
 
 # Use set() instead of list for faster lookup
 CONFIG_SET = {
@@ -33,7 +34,7 @@ cdef class OpenCC:
 
     def __dealloc__(self):
         if self.ptr != NULL:
-            opencc_free(self.ptr)
+            opencc_delete(self.ptr)
             self.ptr = NULL
 
     property config:
@@ -79,4 +80,4 @@ cdef class OpenCC:
                 return ""
         finally:
             if error_ptr != NULL:
-                opencc_string_free(error_ptr)
+                opencc_error_free(error_ptr)
