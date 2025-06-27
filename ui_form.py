@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'form.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.9.0
+## Created by: Qt User Interface Compiler version 6.9.1
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -171,8 +171,9 @@ class Ui_MainWindow(object):
         self.tbSource = TextEditWidget(self.tab_main)
         self.tbSource.setObjectName(u"tbSource")
         font3 = QFont()
-        font3.setFamilies([u"Consolas"])
-        font3.setPointSize(11)
+        font3.setFamilies([u"Segoe UI"])
+        font3.setPointSize(12)
+        font3.setBold(False)
         self.tbSource.setFont(font3)
         self.tbSource.setFrameShape(QFrame.Shape.Box)
         self.tbSource.setLineWidth(2)
@@ -519,7 +520,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 990, 33))
+        self.menubar.setGeometry(QRect(0, 0, 990, 22))
         self.menuFile = QMenu(self.menubar)
         self.menuFile.setObjectName(u"menuFile")
         self.menuHelp = QMenu(self.menubar)
@@ -568,10 +569,10 @@ class Ui_MainWindow(object):
         self.cbManual.setItemText(14, QCoreApplication.translate("MainWindow", u"jp2t (\u65e5/\u65b0 -> \u65e5/\u65e7)", None))
         self.cbManual.setItemText(15, QCoreApplication.translate("MainWindow", u"t2jp (\u65e5/\u65e7 -> \u65e5/\u65b0)", None))
 
-        self.rbStd.setText(QCoreApplication.translate("MainWindow", u"Standard \uff08\u6807\u51c6\u7b80\u7e41\uff09", None))
+        self.rbStd.setText(QCoreApplication.translate("MainWindow", u"Standard \uff08\u901a\u7528\u7b80\u7e41\uff09", None))
         self.rbZhTw.setText(QCoreApplication.translate("MainWindow", u"ZH/TW \uff08\u4e2d\u53f0\u7b80\u7e41\uff09", None))
-        self.rbHK.setText(QCoreApplication.translate("MainWindow", u"Hong Kong \uff08\u9999\u6e2f\u7b80\u7e41\uff09", None))
-        self.cbZhTw.setText(QCoreApplication.translate("MainWindow", u"ZH/TW Idioms \uff08\u901a\u7528\u8bed\uff09", None))
+        self.rbHK.setText(QCoreApplication.translate("MainWindow", u"Hong Kong \uff08\u4e2d\u6e2f\u7b80\u7e41\uff09", None))
+        self.cbZhTw.setText(QCoreApplication.translate("MainWindow", u"ZH/TW Idioms \uff08\u60ef\u7528\u8bed\uff09", None))
         self.cbPunct.setText(QCoreApplication.translate("MainWindow", u"Punctuations \uff08\u6807\u70b9\uff09", None))
         self.lblSource.setText(QCoreApplication.translate("MainWindow", u"Source", None))
         self.lblSourceCode.setText("")

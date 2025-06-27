@@ -183,7 +183,7 @@
            </font>
           </property>
           <property name="text">
-           <string>Standard （标准简繁）</string>
+           <string>Standard （通用简繁）</string>
           </property>
           <property name="checked">
            <bool>true</bool>
@@ -219,7 +219,7 @@
            </font>
           </property>
           <property name="text">
-           <string>Hong Kong （香港简繁）</string>
+           <string>Hong Kong （中港简繁）</string>
           </property>
           <attribute name="buttonGroup">
            <string notr="true">buttonGroup_region</string>
@@ -238,7 +238,7 @@
            </font>
           </property>
           <property name="text">
-           <string>ZH/TW Idioms （通用语）</string>
+           <string>ZH/TW Idioms （惯用语）</string>
           </property>
          </widget>
         </item>
@@ -307,8 +307,9 @@
            <widget class="TextEditWidget" name="tbSource">
             <property name="font">
              <font>
-              <family>Consolas</family>
-              <pointsize>11</pointsize>
+              <family>Segoe UI</family>
+              <pointsize>12</pointsize>
+              <bold>false</bold>
              </font>
             </property>
             <property name="frameShape">
@@ -329,8 +330,9 @@
            <widget class="QPlainTextEdit" name="tbDestination">
             <property name="font">
              <font>
-              <family>Consolas</family>
-              <pointsize>11</pointsize>
+              <family>Segoe UI</family>
+              <pointsize>12</pointsize>
+              <bold>false</bold>
              </font>
             </property>
             <property name="acceptDrops">
@@ -982,7 +984,7 @@
      <x>0</x>
      <y>0</y>
      <width>990</width>
-     <height>33</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1041,7 +1043,7 @@
  </resources>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup_region"/>
   <buttongroup name="buttonGroup_config"/>
+  <buttongroup name="buttonGroup_region"/>
  </buttongroups>
 </ui>

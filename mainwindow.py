@@ -7,9 +7,11 @@ from PySide6.QtGui import QGuiApplication
 from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
 
 # from opencc_cython import OpenCC
-# from opencc_pyo3 import OpenCC
+from opencc_purepy import OpenCC
+# from opencc_jieba_pyo3 import OpenCC
 # from opencc_py import OpenCC
-from opencc_rs import OpenCC
+# from opencc_pyo3 import OpenCC
+# from opencc_rs import OpenCC
 # Important:
 # You need to run the following command to generate the ui_form.py file
 #     pyside6-uic form.ui -o ui_form.py, or
@@ -104,7 +106,7 @@ class MainWindow(QMainWindow):
         filename = QFileDialog.getOpenFileName(
             self,
             "Open Text File",
-            ".",
+            "",
             "Text Files (*.txt);;"
             "Subtitle Files (*.srt *.vtt *.ass *.ttml2 *.xml));;"
             "XML Files (*.xml *.ttml2);;"
@@ -184,6 +186,7 @@ class MainWindow(QMainWindow):
                 for index in range(self.ui.listSource.count()):
                     file_path: str = self.ui.listSource.item(index).text()
                     if os.path.exists(file_path):
+                        input_text = ""
                         try:
                             with open(file_path, "r", encoding="utf-8") as f:
                                 input_text = f.read()
@@ -260,6 +263,8 @@ class MainWindow(QMainWindow):
 
     def btn_preview_clicked(self):
         selected_items = self.ui.listSource.selectedItems()
+        # Initialize contents to a default value
+        contents = ""
         if selected_items:
             selected_item = selected_items[0]
             file_path = selected_item.text()
@@ -267,9 +272,16 @@ class MainWindow(QMainWindow):
                 with open(file_path, "r", encoding="utf-8") as f:
                     contents = f.read()
             except UnicodeDecodeError:
-                contents = ""
+                contents = ""  # Already initialized, but good to explicitly handle for clarity
                 self.ui.statusbar.showMessage(f"{file_path}: Not a valid text file.")
-            self.ui.tbPreview.setPlainText(contents)
+            except FileNotFoundError:  # Add this to handle non-existent files
+                contents = ""
+                self.ui.statusbar.showMessage(f"{file_path}: File not found.")
+            except Exception as e:  # Catch other potential errors
+                contents = ""
+                self.ui.statusbar.showMessage(f"Error opening {file_path}: {e}")
+
+        self.ui.tbPreview.setPlainText(contents)
 
     def btn_out_directory_clicked(self):
         directory = QFileDialog.getExistingDirectory(self, "Select output directory")
