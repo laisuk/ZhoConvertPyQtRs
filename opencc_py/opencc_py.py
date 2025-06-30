@@ -343,29 +343,31 @@ class OpenCC:
 
     @staticmethod
     def convert_punctuation(input_text: str, config: str) -> str:
-        s2t = {
+        """
+        Convert between Simplified and Traditional punctuation styles.
+
+        :param input_text: Input text
+        :param config: 's' for Simplified to Traditional, 't' for Traditional to Simplified
+        :return: Text with punctuation converted
+        """
+        s2t = str.maketrans({
             '“': '「',
             '”': '」',
             '‘': '『',
             '’': '』',
-        }
+        })
 
-        t2s = {
+        t2s = str.maketrans({
             '「': '“',
             '」': '”',
             '『': '‘',
             '』': '’',
-        }
+        })
 
-        if config[0] == 's':
-            mapping = s2t
-            pattern = "[" + "".join(re.escape(c) for c in s2t.keys()) + "]"
+        if config[0].lower() == 's':
+            return input_text.translate(s2t)
         else:
-            pattern = "[" + "".join(re.escape(c) for c in t2s.keys()) + "]"
-            mapping = t2s
-
-        return re.sub(pattern, lambda m: mapping[m.group()], input_text)
-
+            return input_text.translate(t2s)
 
 def find_max_utf8_length(s: str, max_byte_count: int) -> int:
     encoded = s.encode('utf-8')

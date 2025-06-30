@@ -7,9 +7,9 @@ from PySide6.QtGui import QGuiApplication
 from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
 
 # from opencc_cython import OpenCC
-from opencc_purepy import OpenCC
+# from opencc_purepy import OpenCC
 # from opencc_jieba_pyo3 import OpenCC
-# from opencc_py import OpenCC
+from opencc_py import OpenCC
 # from opencc_pyo3 import OpenCC
 # from opencc_rs import OpenCC
 # Important:
@@ -185,6 +185,7 @@ class MainWindow(QMainWindow):
                 self.ui.tbPreview.clear()
                 for index in range(self.ui.listSource.count()):
                     file_path: str = self.ui.listSource.item(index).text()
+                    file_base_path, file_extension = os.path.splitext(file_path)
                     if os.path.exists(file_path):
                         input_text = ""
                         try:
@@ -196,7 +197,7 @@ class MainWindow(QMainWindow):
                         if input_text:
                             converted_text = converter.convert(input_text, self.ui.cbPunct.isChecked())
 
-                            output_filename = self.ui.lineEditDir.text() + "/" + os.path.basename(file_path)
+                            output_filename = self.ui.lineEditDir.text() + f"/{os.path.basename(file_base_path)}_{config}.{file_extension}"
                             with open(output_filename, "w", encoding="utf-8") as f:
                                 f.write(converted_text)
                             self.ui.tbPreview.appendPlainText(f"{index + 1}: {output_filename} --> Done.")

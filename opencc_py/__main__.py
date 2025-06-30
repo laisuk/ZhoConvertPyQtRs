@@ -2,7 +2,7 @@ from __future__ import print_function
 
 import argparse
 import sys
-from . import dict_generate
+from . import dictgen_cmd
 from . import convert_cmd  # We'll move your current logic into convert_cmd.py
 
 def main():
@@ -25,7 +25,7 @@ def main():
     parser_convert.set_defaults(func=convert_cmd.main)
 
     # ---- dict-generate subcommand ----
-    parser_dict = subparsers.add_parser('dict-generate', help='Generate dictionary')
+    parser_dict = subparsers.add_parser('dictgen', help='Generate dictionary')
     parser_dict.add_argument(
         "-f", "--format",
         choices=["zstd", "cbor", "json"],
@@ -37,7 +37,7 @@ def main():
         metavar="<filename>",
         help="Write generated dictionary to <filename>. If not specified, a default filename is used."
     )
-    parser_dict.set_defaults(func=dict_generate.main)
+    parser_dict.set_defaults(func=dictgen_cmd.main)
 
     args = parser.parse_args()
     return args.func(args)

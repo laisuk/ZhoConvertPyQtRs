@@ -183,7 +183,7 @@
            </font>
           </property>
           <property name="text">
-           <string>Standard （通用简繁）</string>
+           <string>General （通用简繁）</string>
           </property>
           <property name="checked">
            <bool>true</bool>
@@ -272,7 +272,7 @@
        <enum>QTabWidget::TabShape::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <property name="iconSize">
        <size>
@@ -630,6 +630,7 @@
            <widget class="DragListWidget" name="listSource">
             <property name="font">
              <font>
+              <family>Segoe UI</family>
               <pointsize>12</pointsize>
              </font>
             </property>
@@ -661,6 +662,12 @@
           </item>
           <item>
            <widget class="QPlainTextEdit" name="tbPreview">
+            <property name="font">
+             <font>
+              <family>Segoe UI</family>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
             <property name="acceptDrops">
              <bool>true</bool>
             </property>
@@ -1043,7 +1050,7 @@
  </resources>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup_config"/>
   <buttongroup name="buttonGroup_region"/>
+  <buttongroup name="buttonGroup_config"/>
  </buttongroups>
 </ui>
