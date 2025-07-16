@@ -1,6 +1,7 @@
 # This Python file uses the following encoding: utf-8
 import os
 import sys
+import time
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QGuiApplication
@@ -154,7 +155,9 @@ class MainWindow(QMainWindow):
                 return
             input_text = self.ui.tbSource.document().toPlainText()
 
+            start_time = time.perf_counter()
             converted_text = converter.convert(input_text, self.ui.cbPunct.isChecked())
+            elapsed_ms = (time.perf_counter() - start_time) * 1000  # in milliseconds
 
             self.ui.tbDestination.document().setPlainText(converted_text)
 
@@ -167,7 +170,7 @@ class MainWindow(QMainWindow):
                 else:
                     self.ui.lblDestinationCode.setText(self.ui.lblSourceCode.text())
 
-            self.ui.statusbar.showMessage(f"Process completed ( {config} )")
+            self.ui.statusbar.showMessage(f"Process completed in {elapsed_ms:.1f} ms ( {config} )")
 
         if self.ui.tabWidget.currentIndex() == 1:
             if self.ui.listSource.count() == 0:
