@@ -1,5 +1,5 @@
 import re
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Sequence
 from .dictionary_lib import DictionaryMaxlength
 
 DELIMITERS = set(
@@ -65,17 +65,18 @@ class OpenCC:
             for start, end in ranges
         )
 
-    def convert_by(self, text_chars, dictionaries, max_word_length: int) -> str:
-        if not text_chars:
+    @staticmethod
+    def convert_by(text_seq: Sequence, dictionaries, max_word_length: int) -> str:
+        if not text_seq:
             return ""
 
-        delimiters = self.delimiters  # Local variable for speed
-        if len(text_chars) == 1 and text_chars[0] in delimiters:
-            return text_chars[0]
+        delimiters = DELIMITERS  # Local variable for speed
+        if len(text_seq) == 1 and text_seq[0] in delimiters:
+            return text_seq[0]
 
         result = []
         i = 0
-        text_chars_len = len(text_chars)
+        text_chars_len = len(text_seq)
 
         while i < text_chars_len:
             remaining = text_chars_len - i
@@ -84,7 +85,7 @@ class OpenCC:
             # Use local variable for dictionaries
             for length in range(min(max_word_length, remaining), 0, -1):
                 end = i + length
-                word = text_chars[i:end]
+                word = text_seq[i:end]
                 for d, max_len in dictionaries:
                     if max_len < length:
                         continue
@@ -99,7 +100,7 @@ class OpenCC:
                 result.append(best_match)
                 i += best_length
             else:
-                result.append(text_chars[i])
+                result.append(text_seq[i])
                 i += 1
         return "".join(result)
 

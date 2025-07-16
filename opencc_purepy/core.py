@@ -667,6 +667,7 @@ class OpenCC:
             return 0
 
         stripped = STRIP_REGEX.sub("", input_text)
+        stripped = stripped if len(stripped) <= 200 else stripped[:200]
         max_chars = find_max_utf8_length(stripped, 200)
         strip_text = stripped[:max_chars]
 
