@@ -146,6 +146,7 @@ class MainWindow(QMainWindow):
 
     def btn_process_click(self):
         config = self.get_current_config()
+        is_punctuation = self.ui.cbPunct.isChecked()
         converter = OpenCC(config)
 
         if self.ui.tabWidget.currentIndex() == 0:
@@ -156,7 +157,7 @@ class MainWindow(QMainWindow):
             input_text = self.ui.tbSource.document().toPlainText()
 
             start_time = time.perf_counter()
-            converted_text = converter.convert(input_text, self.ui.cbPunct.isChecked())
+            converted_text = converter.convert(input_text, is_punctuation)
             elapsed_ms = (time.perf_counter() - start_time) * 1000  # in milliseconds
 
             self.ui.tbDestination.document().setPlainText(converted_text)

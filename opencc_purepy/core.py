@@ -4,11 +4,11 @@ from multiprocessing import Pool, cpu_count
 try:
     from typing import List, Dict, Tuple, Optional
 except ImportError:
-    # Python 2.7 or <3.5: no type hints, so treat them as no-ops
+    # Fallback for Python < 3.5
     List = list
     Dict = dict
     Tuple = tuple
-    Optional = lambda x: x  # Optional[T] becomes just T
+    Optional = lambda x: x
 
 from .dictionary_lib import DictionaryMaxlength
 
@@ -189,9 +189,7 @@ class OpenCC:
         """
         return self._last_error
 
-    from typing import List, Tuple
-
-    def get_split_ranges(self, text: str, inclusive: bool = True) -> List[Tuple[int, int]]:
+    def get_split_ranges(self, text: str, inclusive: bool = False) -> List[Tuple[int, int]]:
         """
         Split the input into ranges of text between delimiters using regex.
 
@@ -233,7 +231,7 @@ class OpenCC:
         the segments are grouped and processed in parallel using multiprocessing for performance.
 
         - For short inputs or few segments, processing is done serially.
-        - For large inputs (default threshold: ≥ 1,000,000 characters and > 100 segments),
+        - For large inputs (default threshold: ≥ 1,000,000 characters and > 1000 segments),
           the segments are divided into chunks and processed in parallel using a pool of up to 4 workers.
 
         :param text: Input string to be converted.
@@ -252,7 +250,7 @@ class OpenCC:
 
         # total_length = sum(end - start for start, end in ranges)
         total_length = len(text)
-        use_parallel = len(ranges) > 100 and total_length >= 1_000_000
+        use_parallel = len(ranges) > 1_000 and total_length >= 1_000_000
 
         if use_parallel:
             group_count = min(4, cpu_count())
@@ -274,7 +272,7 @@ class OpenCC:
             )
 
     @staticmethod
-    def convert_segment(segment, dictionaries, max_word_length):
+    def convert_segment(segment: str, dictionaries, max_word_length: int) -> str:
         """
         Apply dictionary replacements to a text segment using greedy max-length matching.
 
@@ -286,7 +284,7 @@ class OpenCC:
         if not segment:
             return segment
 
-        # Optional: You can define delimiters at module/class level and access it statically
+        # Check if segment is a single delimiter
         if len(segment) == 1 and segment in DELIMITERS:
             return segment
 
@@ -299,10 +297,12 @@ class OpenCC:
             best_match = None
             best_length = 0
 
+            # Try matches from longest to shortest
             for length in range(min(max_word_length, remaining), 0, -1):
                 end = i + length
                 word = segment[i:end]
 
+                # Check all dictionaries for this word
                 for dict_data, max_len in dictionaries:
                     if max_len < length:
                         continue
@@ -384,10 +384,6 @@ class OpenCC:
         :param punctuation: Whether to convert punctuation
         :return: Transformed string in Traditional Chinese
         """
-        if not input_text:
-            self._last_error = "Input text is empty"
-            return ""
-
         refs = self._get_dict_refs("s2t")
         output = refs.apply_segment_replace(input_text, self.segment_replace)
 
@@ -595,6 +591,10 @@ class OpenCC:
         :param punctuation: Whether to apply punctuation conversion
         :return: Converted string or error message
         """
+        if not input_text:
+            self._last_error = "Input text is empty"
+            return ""
+
         config = self.config.lower()
         try:
             if config == "s2t":
@@ -667,7 +667,7 @@ class OpenCC:
             return 0
 
         stripped = STRIP_REGEX.sub("", input_text)
-        stripped = stripped if len(stripped) <= 200 else stripped[:200]
+        stripped = stripped if len(stripped) <= 100 else stripped[:100]
         max_chars = find_max_utf8_length(stripped, 200)
         strip_text = stripped[:max_chars]
 

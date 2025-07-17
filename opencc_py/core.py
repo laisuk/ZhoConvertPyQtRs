@@ -1,5 +1,6 @@
 import re
-from typing import List, Dict, Tuple, Sequence
+from typing import List, Dict, Tuple
+
 from .dictionary_lib import DictionaryMaxlength
 
 DELIMITERS = set(
@@ -66,7 +67,7 @@ class OpenCC:
         )
 
     @staticmethod
-    def convert_by(text_seq: Sequence, dictionaries, max_word_length: int) -> str:
+    def convert_by(text_seq: str, dictionaries, max_word_length: int) -> str:
         if not text_seq:
             return ""
 
