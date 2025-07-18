@@ -667,9 +667,7 @@ class OpenCC:
             return 0
 
         stripped = STRIP_REGEX.sub("", input_text)
-        stripped = stripped if len(stripped) <= 100 else stripped[:100]
-        max_chars = find_max_utf8_length(stripped, 200)
-        strip_text = stripped[:max_chars]
+        strip_text = stripped[:100]
 
         if strip_text != self.ts(strip_text):
             return 1
@@ -677,26 +675,6 @@ class OpenCC:
             return 2
         else:
             return 0
-
-
-def find_max_utf8_length(s: str, max_byte_count: int) -> int:
-    """
-    Safely find the maximum number of UTF-8 bytes that fit within a byte limit.
-    Prevents cutting in the middle of a multibyte sequence.
-
-    :param s: Input string
-    :param max_byte_count: Byte cutoff
-    :return: Number of valid UTF-8 bytes within limit
-    """
-    # Binary search for the optimal cut point
-    left, right = 0, len(s)
-    while left < right:
-        mid = (left + right + 1) // 2
-        if len(s[:mid].encode('utf-8')) <= max_byte_count:
-            left = mid
-        else:
-            right = mid - 1
-    return left
 
 
 def chunk_ranges(ranges, group_count):  # type: (List[Tuple[int, int]], int) -> List[List[Tuple[int, int]]]

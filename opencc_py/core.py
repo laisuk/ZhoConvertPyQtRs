@@ -345,8 +345,8 @@ class OpenCC:
             return 0
 
         stripped = STRIP_REGEX.sub("", input_text)
-        max_chars = find_max_utf8_length(stripped, 200)
-        strip_text = stripped[:max_chars]
+        # max_chars = find_max_utf8_length(stripped, 200)
+        strip_text = stripped[:100]
 
         if strip_text != self.ts(strip_text):
             return 1
@@ -385,14 +385,17 @@ class OpenCC:
 
 
 def find_max_utf8_length(s: str, max_byte_count: int) -> int:
-    if len(s) >= max_byte_count:
-        s = s[:max_byte_count]
+    if len(s) >= max_byte_count // 2:
+        s = s[:max_byte_count // 2]
 
     encoded = s.encode('utf-8')
     if len(encoded) <= max_byte_count:
-        return len(encoded)
+        return len(s)
 
     byte_count = max_byte_count
     while byte_count > 0 and (encoded[byte_count] & 0b11000000) == 0b10000000:
         byte_count -= 1
-    return byte_count
+
+    # decode the valid byte slice and count characters
+    safe_substring = encoded[:byte_count].decode('utf-8', errors='ignore')
+    return len(safe_substring)
