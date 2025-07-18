@@ -60,3 +60,13 @@ class OpenCC:
             raise RuntimeError("OpenCC converter not initialized")
         code = self.lib.opencc_zho_check(self._openccInstance, text.encode('utf-8'))
         return code
+
+    def set_config(self, config):
+        if not hasattr(self, '_openccInstance') or self._openccInstance is None:
+            raise RuntimeError("OpenCC converter not initialized")
+        self.config = config
+
+    def get_config(self) -> str:
+        if not hasattr(self, '_openccInstance') or self._openccInstance is None:
+            raise RuntimeError("OpenCC converter not initialized")
+        return self.config

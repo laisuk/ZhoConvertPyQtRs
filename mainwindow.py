@@ -8,10 +8,10 @@ from PySide6.QtGui import QGuiApplication
 from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
 
 # from opencc_cython import OpenCC
-# from opencc_purepy import OpenCC
+from opencc_purepy import OpenCC
 # from opencc_jieba_pyo3 import OpenCC
 # from opencc_py import OpenCC
-from opencc_pyo3 import OpenCC
+# from opencc_pyo3 import OpenCC
 # from opencc_rs import OpenCC
 # Important:
 # You need to run the following command to generate the ui_form.py file
@@ -51,6 +51,8 @@ class MainWindow(QMainWindow):
         self.ui.cbManual.activated.connect(self.cb_manual_activated)
         self.ui.actionAbout.triggered.connect(self.action_about_triggered)
         self.ui.actionExit.triggered.connect(btn_exit_click)
+
+        self.converter = OpenCC()
 
     def action_about_triggered(self):
         QMessageBox.about(self, "About", "Zho Converter version 1.0.0 (c) 2024 Bryan Lai")
@@ -147,7 +149,7 @@ class MainWindow(QMainWindow):
     def btn_process_click(self):
         config = self.get_current_config()
         is_punctuation = self.ui.cbPunct.isChecked()
-        converter = OpenCC(config)
+        self.converter.set_config(config)
 
         if self.ui.tabWidget.currentIndex() == 0:
             self.ui.tbDestination.clear()
@@ -157,7 +159,7 @@ class MainWindow(QMainWindow):
             input_text = self.ui.tbSource.document().toPlainText()
 
             start_time = time.perf_counter()
-            converted_text = converter.convert(input_text, is_punctuation)
+            converted_text = self.converter.convert(input_text, is_punctuation)
             elapsed_ms = (time.perf_counter() - start_time) * 1000  # in milliseconds
 
             self.ui.tbDestination.document().setPlainText(converted_text)
@@ -199,7 +201,7 @@ class MainWindow(QMainWindow):
                             input_text = ""
 
                         if input_text:
-                            converted_text = converter.convert(input_text, self.ui.cbPunct.isChecked())
+                            converted_text = self.converter.convert(input_text, self.ui.cbPunct.isChecked())
 
                             output_filename = self.ui.lineEditDir.text() + f"/{os.path.basename(file_base_path)}_{config}.{file_extension}"
                             with open(output_filename, "w", encoding="utf-8") as f:

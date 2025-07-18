@@ -13,3 +13,9 @@ class OpenCC(_OpenCC):
 
     def convert(self, input_text, punctuation=False) -> str:
         return super().convert(input_text, punctuation)
+
+    def set_config(self, config):
+        self.config = config
+
+    def get_config(self):
+        return self.config
