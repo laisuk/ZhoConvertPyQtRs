@@ -7,8 +7,8 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
 
-# from opencc_cython import OpenCC
-from opencc_purepy import OpenCC
+from opencc_cython import OpenCC
+# from opencc_purepy import OpenCC
 # from opencc_jieba_pyo3 import OpenCC
 # from opencc_py import OpenCC
 # from opencc_pyo3 import OpenCC
