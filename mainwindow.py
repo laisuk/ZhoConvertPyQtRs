@@ -194,10 +194,12 @@ class MainWindow(QMainWindow):
                 for index in range(self.ui.listSource.count()):
                     file_path: str = self.ui.listSource.item(index).text()
                     file_base_path, file_extension = os.path.splitext(file_path)
-                    ext = file_extension.lstrip(".")
+                    ext = file_extension.lower().lstrip(".")
                     if os.path.exists(file_path):
                         output_filename = self.ui.lineEditDir.text() + f"/{os.path.basename(file_base_path)}_{config}.{ext}"
+
                         if ext in OFFICE_FORMATS:
+                            # Convert Office documents
                             success, message = convert_office_doc(file_path, output_filename, ext, self.converter,
                                                                   is_punctuation, True)
                             if success:
@@ -208,6 +210,7 @@ class MainWindow(QMainWindow):
                             continue
 
                         else:
+                            # Convert plain text files
                             input_text = ""
                             try:
                                 with open(file_path, "r", encoding="utf-8") as f:

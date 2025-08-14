@@ -140,11 +140,6 @@ class DictionaryMaxlength:
             content = (base / filename).read_text(encoding="utf-8")
             setattr(instance, attr, cls.load_dictionary_maxlength(content))
 
-        # if starter_blob is not None:
-        #     try:
-        #         instance._starter_index_blob = starter_blob
-        #     except Exception:
-        #         pass
         return instance
 
     @staticmethod
@@ -170,23 +165,49 @@ class DictionaryMaxlength:
 
         return dictionary, max_length
 
-    # def serialize_to_json(self, path: str):
-    #     """
-    #     Serialize the current dictionary data to a JSON file.
-    #
-    #     :param path: Output file path
-    #     """
-    #     import json
-    #     with open(path, "w", encoding="utf-8") as f:
-    #         json.dump({**self.__dict__, **({'starter_index': self._starter_index_blob} if hasattr(self,
-    #                                                                                               '_starter_index_blob') and self._starter_index_blob is not None else {})},
-    #                   f, ensure_ascii=False, indent=2)
-
     def serialize_to_json(self, path: str):
         """
-        Write a stable JSON shape:
-          - each dict field as [map, maxlength]
-          - 'starter_index' if present (public name)
+        Serialize the current dictionary set to a stable JSON format.
+
+        The output JSON has a fixed shape for consistency across builds:
+          - Each dictionary field is serialized as a two-element array:
+                [ {<mapping>}, <max_length:int> ]
+            where:
+              * The first element is a shallow copy of the mapping.
+              * The second element is the maximum key length for that dictionary.
+          - If a starter index blob is present (self._starter_index_blob),
+            it is added under the public key `"starter_index"`.
+
+        Fields are written in a fixed order to guarantee deterministic output:
+            st_characters, st_phrases,
+            ts_characters, ts_phrases,
+            tw_phrases, tw_phrases_rev,
+            tw_variants, tw_variants_rev, tw_variants_rev_phrases,
+            hk_variants, hk_variants_rev, hk_variants_rev_phrases,
+            jps_characters, jps_phrases,
+            jp_variants, jp_variants_rev
+
+        Parameters
+        ----------
+        path : str
+            Filesystem path to write the serialized JSON file.
+
+        Notes
+        -----
+        - `max_length` values are stored as plain integers.
+        - Dictionaries are copied to avoid mutating the originals during serialization.
+        - `starter_index` is optional and only included if `_starter_index_blob` exists.
+        - Output JSON is compact: no extra whitespace, UTF-8 encoded, non-ASCII
+          characters are written as-is (ensure_ascii=False).
+
+        Example output
+        --------------
+        {
+          "st_characters": [ {"你": "妳", "爱": "愛"}, 2 ],
+          "st_phrases":    [ {"你好": "您好"}, 2 ],
+          ...
+          "starter_index": { "schema": 1, "global_cap": 64, ... }
+        }
         """
         import json
 
@@ -214,6 +235,28 @@ class DictionaryMaxlength:
             json.dump(out, f, ensure_ascii=False, separators=(",", ":"))
 
     def try_get_starter_index(self) -> Optional["StarterIndex"]:
+        """
+        Retrieve the cached or stored starter index, if available.
+
+        This method attempts to return a `StarterIndex` instance in the following order:
+          1. If `_starter_index_cache` is already set, return it immediately.
+          2. Otherwise, look for `_starter_index_blob` (serialized form).
+             - If absent or empty, return `None`.
+             - If present, attempt to deserialize it via `unpack_index_blob()`.
+               On success, cache the result in `_starter_index_cache` and return it.
+               On failure (TypeError, KeyError, ValueError), return `None`.
+
+        Returns
+        -------
+        StarterIndex or None
+            The deserialized starter index if available and valid, otherwise `None`.
+
+        Notes
+        -----
+        - This is a lazy accessor; the starter index is only deserialized when first
+          requested.
+        - Failures are deliberately silenced for expected blob format errors.
+        """
         if self._starter_index_cache is not None:
             return self._starter_index_cache
         blob = self._starter_index_blob
@@ -227,7 +270,26 @@ class DictionaryMaxlength:
             return None
 
     def inject_starter_index(self, idx: "StarterIndex") -> None:
-        # pack and store the blob; serializer will write it under 'starter_index'
+        """
+        Store a `StarterIndex` in both serialized and cached form.
+
+        This method takes a fully-built `StarterIndex` instance and:
+          1. Serializes it into `_starter_index_blob` via `pack_index_blob()`.
+             This ensures it will be included in `serialize_to_json()` output
+             under the public key `"starter_index"`.
+          2. Stores the original `StarterIndex` instance in `_starter_index_cache`
+             for immediate in-memory reuse.
+
+        Parameters
+        ----------
+        idx : StarterIndex
+            The starter index to store.
+
+        Notes
+        -----
+        - Uses a local import of `pack_index_blob` to avoid circular dependencies.
+        - Overwrites any previously stored blob and cache.
+        """
         from .starter_index import pack_index_blob  # local import to avoid cycles
         self._starter_index_blob = pack_index_blob(idx)
         self._starter_index_cache = idx

@@ -3,17 +3,21 @@ from multiprocessing import Pool, cpu_count
 
 from .merge_dicts import merge_in_precedence
 from .starter_index import StarterIndex
+from .dictionary_lib import DictionaryMaxlength
 
 try:
-    from typing import List, Dict, Tuple, Optional
+    from typing import List, Dict, Tuple, Optional, Iterable, Mapping
 except ImportError:
     # Fallback for Python < 3.5
     List = list
     Dict = dict
     Tuple = tuple
-    Optional = lambda x: x
+    Iterable = list
+    Mapping = dict
 
-from .dictionary_lib import DictionaryMaxlength
+
+    def Optional(x):  # type: ignore
+        return x
 
 # Pre-compiled regex for better performance
 STRIP_REGEX = re.compile(r"[!-/:-@\[-`{-~\t\n\v\f\r 0-9A-Za-z_著]")
@@ -140,6 +144,8 @@ class OpenCC:
         self._fast_cache = {}
         self._merged_cache = {}
         self._starter_idx_cache = {}
+        # id(dict) -> fingerprint tuple
+        self._fp_cache: dict[int, tuple] = {}
 
         if config in self.CONFIG_LIST:
             self.config = config
@@ -229,54 +235,150 @@ class OpenCC:
         return ranges
 
     @staticmethod
-    def _dict_fp(d: dict):
-        """Cheap, process-local fingerprint for a dict; prefers a pre-stamped attribute."""
-        fp = getattr(d, "__fp__", None)
+    def _make_fp(d: dict, maxlen: int) -> tuple:
+        """
+        Create a cheap, process-local fingerprint for a dictionary.
+
+        The fingerprint is a tuple:
+            ("id", id(d), len(d), maxlen)
+
+        Parameters
+        ----------
+        d : dict
+            Dictionary to fingerprint. Must remain immutable after this call
+            for the fingerprint to stay valid.
+        maxlen : int
+            Maximum key length for this dictionary (precomputed).
+
+        Returns
+        -------
+        tuple
+            Process-local fingerprint tuple.
+        """
+        return "id", id(d), len(d), maxlen
+
+    def _dict_fp(self, dict_tuple: tuple) -> tuple:
+        """
+        Return a cached fingerprint for a (dict, maxlen) tuple.
+
+        Parameters
+        ----------
+        dict_tuple : tuple,
+            Tuple of (dict, maxlen) as stored in DictionaryMaxlength fields.
+
+        Returns
+        -------
+        tuple
+            Cached fingerprint, or a newly created one if not yet cached.
+
+        Notes
+        -----
+        - Uses `id(dict)` as the cache key, making the result process-local.
+        - Assumes dictionaries are immutable after build; if mutated, the
+          fingerprint may be stale.
+        """
+        d, max_len = dict_tuple
+        k = id(d)
+        fp = self._fp_cache.get(k)
         if fp is not None:
             return fp
-        try:
-            max_k = max((len(k) for k in d.keys()), default=0)
-        except (TypeError, KeyError, ValueError):
-            max_k = 0
-        return "id", id(d), len(d), max_k
+        fp = self._make_fp(d, max_len)
+        self._fp_cache[k] = fp
+        return fp
 
-    def segment_replace(self, text: str, dictionaries: List[Tuple[Dict[str, str], int]], max_word_length: int) -> str:
+    def segment_replace(
+            self,
+            text: str,
+            dictionaries: List[Tuple[Dict[str, str], int]],
+            max_word_length: int
+    ) -> str:
         """
-        Perform dictionary-based replacement on segmented text.
+        Perform dictionary-based greedy replacement on segmented text.
 
-        Splits input into non-delimiter segments and applies greedy max-length replacement.
-        For very large inputs (≥1_000_000 chars, >1_000 segments), segments are processed in
-        parallel (up to 4 workers). Uses a fast path with a merged precedence map and a
-        starter index when available; otherwise falls back to legacy conversion.
+        This method:
+          1. Splits the input string into segments based on predefined delimiters.
+          2. Applies greedy maximum-length replacement within each segment using
+             the provided dictionaries (in precedence order).
+          3. Chooses the most efficient conversion path based on available indexes
+             and workload size.
+
+        Conversion paths
+        ----------------
+        * **Indexed fast path** — Used when a `StarterIndex` is available:
+            - Merges all dictionaries into a single precedence-ordered map.
+            - Uses the `StarterIndex` to skip impossible matches and speed up lookups.
+            - Parallelizable with `convert_range_group_indexed`.
+        * **Legacy path** — Used when no index is available:
+            - Directly applies each dictionary in precedence order to each segment.
+            - Parallelizable with `convert_range_group`.
+
+        Parallel execution
+        ------------------
+        Parallel processing is triggered when:
+            - `len(ranges)` > 1,000 **and**
+            - `len(text)` ≥ 1,000,000 characters.
+        In this case, segments are split into up to 4 groups and processed
+        in a multiprocessing pool.
+
+        Parameters
+        ----------
+        text : str
+            The input text to be converted.
+        dictionaries : list of (dict, int)
+            Sequence of dictionaries and their respective maximum key lengths.
+            The order determines replacement precedence (last overrides first).
+        max_word_length : int
+            Global maximum match length, capped by actual dictionary contents.
+
+        Returns
+        -------
+        str
+            The converted text after all replacements.
+
+        Notes
+        -----
+        - The indexed fast path is only possible if:
+            * A prebuilt `StarterIndex` is present in `self.dictionary` and has
+              `global_cap >= max_word_length`, or
+            * A new `StarterIndex` can be built from `dictionaries` without error.
+        - A per-call `dict_sig` fingerprint is computed to cache merged maps
+          and starter indexes for reuse.
+        - Falls back to the legacy path if index construction fails.
+        - For a single segment equal to the whole text, conversion is done in one
+          call without splitting overhead.
+
+        See Also
+        --------
+        OpenCC.convert_segment_indexed : Indexed segment conversion.
+        OpenCC.convert_segment         : Legacy segment conversion.
+        StarterIndex.build             : Index construction from dictionaries.
         """
         if not text:
             return text
 
         # ----- Fast-path prep: merged precedence map + starter index -----
         active_dicts = [d for (d, _m) in dictionaries]
+        dict_sig = tuple(self._dict_fp(dict_tuple) for dict_tuple in dictionaries)
 
-        dict_sig = tuple(self._dict_fp(d) for d in active_dicts)
-
-        cap_from_dicts = max((len(k) for d in active_dicts for k in d.keys()), default=0)
+        cap_from_dicts = max((maxlen for _, maxlen in dictionaries), default=0)
         global_cap = min(max_word_length, cap_from_dicts) if cap_from_dicts else max_word_length
 
         fast_key = (dict_sig, global_cap)
         _fast = self._fast_cache.get(fast_key)
 
         if _fast is None:
-            # 1) merged map (depends only on dict order/contents)
+            # 1) merged map
             merged_map = self._merged_cache.get(dict_sig)
             if merged_map is None:
                 merged_map = merge_in_precedence(active_dicts)
                 self._merged_cache[dict_sig] = merged_map
 
-            # 2) starter index (depends on dicts + cap)
+            # 2) starter index
             idx_key = (dict_sig, global_cap)
             starter_idx = self._starter_idx_cache.get(idx_key)
-
             if starter_idx is None:
                 idx = None
-                # Try to reuse a prebuilt global index if sufficient
+                # Try to reuse prebuilt global index if sufficient
                 if getattr(self, "dictionary", None):
                     try:
                         idx = self.dictionary.try_get_starter_index()
@@ -289,7 +391,7 @@ class OpenCC:
                     try:
                         starter_idx = StarterIndex.build(active_dicts, global_cap)
                     except (TypeError, KeyError, ValueError):
-                        starter_idx = None  # fall back enabled
+                        starter_idx = None
                 else:
                     starter_idx = idx
 
@@ -299,10 +401,10 @@ class OpenCC:
             self._fast_cache[fast_key] = _fast
 
         merged_map, starter_idx, global_cap = _fast
-        fast_ok = starter_idx is not None  # <<< important: only fast when index exists
+        fast_ok = starter_idx is not None
 
         # ----- Split into segments -----
-        ranges = self.get_split_ranges(text, inclusive=False)
+        ranges = self.get_split_ranges(text, inclusive=True)
 
         # Single segment → straight convert
         if len(ranges) == 1 and ranges[0] == (0, len(text)):
@@ -321,13 +423,11 @@ class OpenCC:
 
             with Pool(processes=group_count) as pool:
                 if fast_ok:
-                    # parallel indexed
                     results = pool.map(
                         convert_range_group_indexed,
                         [(text, group, merged_map, starter_idx, global_cap) for group in groups]
                     )
                 else:
-                    # parallel legacy
                     results = pool.map(
                         convert_range_group,
                         [(text, group, dictionaries, max_word_length, OpenCC.convert_segment) for group in groups]
@@ -397,8 +497,63 @@ class OpenCC:
         return ''.join(result)
 
     @staticmethod
-    def convert_segment_indexed(segment: str, merged_map: dict, starter_index: StarterIndex, global_cap: int) -> str:
-        # Fast path: length mask + single merged map lookup
+    def convert_segment_indexed(
+            segment: str,
+            merged_map: dict,
+            starter_index: StarterIndex,
+            global_cap: int
+    ) -> str:
+        """
+        Convert a single text segment using the indexed fast path.
+
+        This method applies greedy maximum-length matching using:
+          * A single precedence-merged replacement map (`merged_map`)
+          * A `StarterIndex` providing:
+              - A per-starter length bitmask
+              - A per-starter maximum length (`cap`)
+          * The `global_cap` limit, to avoid over-matching beyond configured max length
+
+        Algorithm
+        ---------
+        1. Skip processing for empty strings or single-character delimiters.
+        2. For each character position `i` in the segment:
+           a. Look up `(mask, cap)` from the starter index using the current codepoint.
+           b. If `mask == 0` or `cap == 0`, append the character as-is and advance 1.
+           c. Otherwise:
+              - Compute `cap_here = min(remaining_length, cap, global_cap)`
+              - Restrict `mask` to lengths ≤ `cap_here`
+              - Try lengths from longest to shortest by:
+                  * Extracting the substring
+                  * Looking it up in `merged_map`
+                  * On first match, append replacement, advance `i` by length, break
+              - If no match found, append current character and advance 1.
+        3. Join and return all collected output parts.
+
+        Parameters
+        ----------
+        segment : str
+            The text segment to convert (no delimiters inside).
+        merged_map : dict[str, str]
+            Precedence-merged dictionary mapping source strings to replacements.
+        starter_index : StarterIndex
+            Index providing possible match lengths per starting codepoint.
+        global_cap : int
+            Global maximum match length (1–64).
+
+        Returns
+        -------
+        str
+            Converted segment with replacements applied.
+
+        Notes
+        -----
+        - `starter_index` is expected to be built from the same dictionaries that
+          produced `merged_map`.
+        - This is an O(n) scan with constant-time candidate filtering via bitmask.
+        - Bit order in the mask: bit 0 = length 1, bit 1 = length 2, ..., bit 63 = length 64.
+        - Falls back to character-by-character copying if no possible matches.
+        """
+        # Fast skip for trivial cases
         if not segment or (len(segment) == 1 and segment in DELIMITERS):
             return segment
 
@@ -418,10 +573,12 @@ class OpenCC:
             rem = n - i
             cap_here = min(rem, cap, global_cap)
 
-            m = mask & ((1 << cap_here) - 1)  # only consider feasible lengths
+            # Restrict mask to feasible lengths only
+            m = mask & ((1 << cap_here) - 1)
             matched = False
             while m:
-                L = m.bit_length()  # highest set bit → longest available length
+                # Highest set bit index = longest candidate length
+                L = m.bit_length()
                 s = seg[i:i + L]
                 repl = get(s)
                 if repl is not None:
@@ -429,7 +586,7 @@ class OpenCC:
                     i += L
                     matched = True
                     break
-                # clear that bit and try the next one down
+                # Clear the bit for length L and try shorter
                 m &= (1 << (L - 1)) - 1
 
             if not matched:
@@ -469,6 +626,34 @@ class OpenCC:
         elif config_key == "hk2s":
             refs = (DictRefs([d.hk_variants_rev_phrases, d.hk_variants_rev])
                     .with_round_2([d.ts_phrases, d.ts_characters]))
+
+        # ------------ Newly added configs ------------
+        elif config_key == "t2tw":
+            # Traditional → Taiwan standard (variants only)
+            refs = DictRefs([d.tw_variants])
+        elif config_key == "t2twp":
+            # Traditional → Taiwan standard with phrases
+            refs = (DictRefs([d.tw_phrases])
+                    .with_round_2([d.tw_variants]))
+        elif config_key == "tw2t":
+            # Taiwan standard → Generic Traditional (reverse)
+            refs = DictRefs([d.tw_variants_rev_phrases, d.tw_variants_rev])
+        elif config_key == "tw2tp":
+            # Taiwan standard → Generic Traditional with phrase reverse
+            refs = (DictRefs([d.tw_variants_rev_phrases, d.tw_variants_rev])
+                    .with_round_2([d.tw_phrases_rev]))
+        elif config_key == "t2hk":
+            # Traditional → Hong Kong standard
+            refs = DictRefs([d.hk_variants])
+        elif config_key == "hk2t":
+            # Hong Kong standard → Generic Traditional (reverse)
+            refs = DictRefs([d.hk_variants_rev_phrases, d.hk_variants_rev])
+        elif config_key == "t2jp":
+            # Traditional → Japanese forms (Shinjitai + JP variants)
+            refs = DictRefs([d.jp_variants])
+        elif config_key == "jp2t":
+            # Japanese Shinjitai → Traditional
+            refs = DictRefs([d.jps_phrases, d.jps_characters, d.jp_variants_rev])
 
         if refs:
             self._config_cache[config_key] = refs
@@ -637,63 +822,56 @@ class OpenCC:
         """
         Convert Traditional Chinese to Taiwan Standard Traditional Chinese.
         """
-        refs = DictRefs([self.dictionary.tw_variants])
+        refs = self._get_dict_refs("t2tw")
         return refs.apply_segment_replace(input_text, self.segment_replace)
 
     def t2twp(self, input_text: str) -> str:
         """
         Convert Traditional Chinese to Taiwan Standard using phrase and variant mappings.
         """
-        d = self.dictionary
-        refs = (DictRefs([d.tw_phrases])
-                .with_round_2([d.tw_variants]))
+        refs = self._get_dict_refs("t2twp")
         return refs.apply_segment_replace(input_text, self.segment_replace)
 
     def tw2t(self, input_text: str) -> str:
         """
         Convert Taiwan Traditional to general Traditional Chinese.
         """
-        d = self.dictionary
-        refs = DictRefs([d.tw_variants_rev_phrases, d.tw_variants_rev])
+        refs = self._get_dict_refs("tw2t")
         return refs.apply_segment_replace(input_text, self.segment_replace)
 
     def tw2tp(self, input_text: str) -> str:
         """
         Convert Taiwan Traditional to Traditional with phrase reversal.
         """
-        d = self.dictionary
-        refs = (DictRefs([d.tw_variants_rev_phrases, d.tw_variants_rev])
-                .with_round_2([d.tw_phrases_rev]))
+        refs = self._get_dict_refs("tw2tp")
         return refs.apply_segment_replace(input_text, self.segment_replace)
 
     def t2hk(self, input_text: str) -> str:
         """
         Convert Traditional Chinese to Hong Kong variant.
         """
-        refs = DictRefs([self.dictionary.hk_variants])
+        refs = self._get_dict_refs("t2hk")
         return refs.apply_segment_replace(input_text, self.segment_replace)
 
     def hk2t(self, input_text: str) -> str:
         """
         Convert Hong Kong Traditional to standard Traditional Chinese.
         """
-        d = self.dictionary
-        refs = DictRefs([d.hk_variants_rev_phrases, d.hk_variants_rev])
+        refs = self._get_dict_refs("hk2t")
         return refs.apply_segment_replace(input_text, self.segment_replace)
 
     def t2jp(self, input_text: str) -> str:
         """
-        Convert Traditional Chinese to Japanese variants.
+        Convert japanese Kyujitai  to Japanese Shinjitai.
         """
-        refs = DictRefs([self.dictionary.jp_variants])
+        refs = self._get_dict_refs("t2jp")
         return refs.apply_segment_replace(input_text, self.segment_replace)
 
     def jp2t(self, input_text: str) -> str:
         """
-        Convert Japanese Shinjitai (modern Kanji) to Traditional Chinese.
+        Convert Japanese Shinjitai (modern Kanji) to Kyujitai.
         """
-        d = self.dictionary
-        refs = DictRefs([d.jps_phrases, d.jps_characters, d.jp_variants_rev])
+        refs = self._get_dict_refs("jp2t")
         return refs.apply_segment_replace(input_text, self.segment_replace)
 
     def convert(self, input_text: str, punctuation: bool = False) -> str:
@@ -757,6 +935,7 @@ class OpenCC:
             return input_text
 
         dict_data = [self.dictionary.st_characters]
+        # return self.convert_segment(input_text, dict_data, 1)
         return self.convert_segment(input_text, dict_data, 1)
 
     def ts(self, input_text: str) -> str:
@@ -828,13 +1007,43 @@ def convert_range_group(args):
     )
 
 
-def convert_range_group_indexed(args):
+def convert_range_group_indexed(args: Tuple[
+    str,  # text
+    Iterable[Tuple[int, int]],  # group of (start, end)
+    Mapping[str, str],  # merged_map
+    "StarterIndex",  # starter_index
+    int  # global_cap
+]) -> str:
     """
-    Pool task: convert one group of (start, end) ranges using the indexed fast path.
-    args = (text, group, merged_map, starter_index, global_cap)
+    Convert one group of (start, end) ranges using the indexed fast path.
+
+    Parameters
+    ----------
+    args : tuple
+        (text, group, merged_map, starter_index, global_cap)
+        - text: The full input text.
+        - group: Iterable of (start, end) indices into `text` for this worker.
+        - merged_map: Precedence-merged replacement map (str -> str).
+        - starter_index: StarterIndex instance for fast prefix pruning.
+        - global_cap: Maximum phrase length (capped to the index's global cap).
+
+    Returns
+    -------
+    str
+        Concatenated converted text for all ranges in `group`, in order.
+
+    Notes
+    -----
+    - This function is intended to be executed in a worker process.
+    - `starter_index` must be pickleable to cross process boundaries; if it isn't,
+      pass its serialized blob and rebuild it in the worker.
     """
     text, group, merged_map, starter_index, global_cap = args
-    parts = []
-    for (s, e) in group:
-        parts.append(OpenCC.convert_segment_indexed(text[s:e], merged_map, starter_index, global_cap))
-    return "".join(parts)
+
+    # Local binds to avoid repeated global lookups in tight loops
+    convert_seg = OpenCC.convert_segment_indexed
+    append: List[str] = []
+    a = append.append
+    for s, e in group:
+        a(convert_seg(text[s:e], merged_map, starter_index, global_cap))
+    return "".join(append)
