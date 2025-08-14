@@ -1,6 +1,5 @@
 import os
 from .dictionary_lib import DictionaryMaxlength
-from .starter_index import StarterIndex
 
 BLUE = "\033[1;34m"
 RESET = "\033[0m"
@@ -30,22 +29,6 @@ def main(args):
 
     # Generate dictionary data
     dictionaries = DictionaryMaxlength.from_dicts()
-    # Build and embed Starter Index (cap + mask) for fastest runtime
-    active_dicts = [
-        dictionaries.st_characters[0], dictionaries.st_phrases[0],
-        dictionaries.ts_characters[0], dictionaries.ts_phrases[0],
-        dictionaries.tw_phrases[0], dictionaries.tw_phrases_rev[0],
-        dictionaries.tw_variants[0], dictionaries.tw_variants_rev[0],
-        dictionaries.tw_variants_rev_phrases[0],
-        dictionaries.hk_variants[0], dictionaries.hk_variants_rev[0],
-        dictionaries.hk_variants_rev_phrases[0],
-        dictionaries.jps_characters[0], dictionaries.jps_phrases[0],
-        dictionaries.jp_variants[0], dictionaries.jp_variants_rev[0],
-    ]
-    global_cap = max((len(k) for d in active_dicts for k in d.keys()), default=1)
-    idx = StarterIndex.build(active_dicts, global_cap)
-    # Attach the index so serialize_to_json() embeds it under 'starter_index'
-    dictionaries.inject_starter_index(idx)
 
     if args.format == "json":
         # Serialize dictionary to JSON file

@@ -1,9 +1,6 @@
 import re
 from multiprocessing import Pool, cpu_count
 
-from .merge_dicts import merge_in_precedence
-from .starter_index import StarterIndex
-
 try:
     from typing import List, Dict, Tuple, Optional
 except ImportError:
@@ -137,9 +134,6 @@ class OpenCC:
         """
         self._last_error = None
         self._config_cache = {}
-        self._fast_cache = {}
-        self._merged_cache = {}
-        self._starter_idx_cache = {}
 
         if config in self.CONFIG_LIST:
             self.config = config
@@ -228,122 +222,53 @@ class OpenCC:
 
         return ranges
 
-    @staticmethod
-    def _dict_fp(d: dict):
-        """Cheap, process-local fingerprint for a dict; prefers a pre-stamped attribute."""
-        fp = getattr(d, "__fp__", None)
-        if fp is not None:
-            return fp
-        try:
-            max_k = max((len(k) for k in d.keys()), default=0)
-        except (TypeError, KeyError, ValueError):
-            max_k = 0
-        return "id", id(d), len(d), max_k
-
     def segment_replace(self, text: str, dictionaries: List[Tuple[Dict[str, str], int]], max_word_length: int) -> str:
         """
         Perform dictionary-based replacement on segmented text.
 
-        Splits input into non-delimiter segments and applies greedy max-length replacement.
-        For very large inputs (≥1_000_000 chars, >1_000 segments), segments are processed in
-        parallel (up to 4 workers). Uses a fast path with a merged precedence map and a
-        starter index when available; otherwise falls back to legacy conversion.
+        This method splits the input string into segments based on predefined delimiter characters.
+        It applies greedy maximum-length dictionary replacement to each segment. For large inputs,
+        the segments are grouped and processed in parallel using multiprocessing for performance.
+
+        - For short inputs or few segments, processing is done serially.
+        - For large inputs (default threshold: ≥ 1,000,000 characters and > 1000 segments),
+          the segments are divided into chunks and processed in parallel using a pool of up to 4 workers.
+
+        :param text: Input string to be converted.
+        :param dictionaries: List of (dictionary, max_length) tuples, where each dictionary maps input strings
+                             to replacements, and max_length indicates the longest key in that dictionary.
+        :param max_word_length: Precomputed maximum word length to attempt for matching.
+        :return: A converted string with all segments processed and recombined.
         """
         if not text:
             return text
 
-        # ----- Fast-path prep: merged precedence map + starter index -----
-        active_dicts = [d for (d, _m) in dictionaries]
-
-        dict_sig = tuple(self._dict_fp(d) for d in active_dicts)
-
-        cap_from_dicts = max((len(k) for d in active_dicts for k in d.keys()), default=0)
-        global_cap = min(max_word_length, cap_from_dicts) if cap_from_dicts else max_word_length
-
-        fast_key = (dict_sig, global_cap)
-        _fast = self._fast_cache.get(fast_key)
-
-        if _fast is None:
-            # 1) merged map (depends only on dict order/contents)
-            merged_map = self._merged_cache.get(dict_sig)
-            if merged_map is None:
-                merged_map = merge_in_precedence(active_dicts)
-                self._merged_cache[dict_sig] = merged_map
-
-            # 2) starter index (depends on dicts + cap)
-            idx_key = (dict_sig, global_cap)
-            starter_idx = self._starter_idx_cache.get(idx_key)
-
-            if starter_idx is None:
-                idx = None
-                # Try to reuse a prebuilt global index if sufficient
-                if getattr(self, "dictionary", None):
-                    try:
-                        idx = self.dictionary.try_get_starter_index()
-                        if idx and getattr(idx, "global_cap", 0) < global_cap:
-                            idx = None
-                    except (TypeError, KeyError, ValueError):
-                        idx = None
-
-                if idx is None:
-                    try:
-                        starter_idx = StarterIndex.build(active_dicts, global_cap)
-                    except (TypeError, KeyError, ValueError):
-                        starter_idx = None  # fall back enabled
-                else:
-                    starter_idx = idx
-
-                self._starter_idx_cache[idx_key] = starter_idx
-
-            _fast = (merged_map, starter_idx, global_cap)
-            self._fast_cache[fast_key] = _fast
-
-        merged_map, starter_idx, global_cap = _fast
-        fast_ok = starter_idx is not None  # <<< important: only fast when index exists
-
-        # ----- Split into segments -----
         ranges = self.get_split_ranges(text, inclusive=False)
 
-        # Single segment → straight convert
         if len(ranges) == 1 and ranges[0] == (0, len(text)):
-            if fast_ok:
-                return OpenCC.convert_segment_indexed(text, merged_map, starter_idx, global_cap)
-            else:
-                return OpenCC.convert_segment(text, dictionaries, max_word_length)
+            return OpenCC.convert_segment(text, dictionaries, max_word_length)
 
-        # Parallel threshold
+        # total_length = sum(end - start for start, end in ranges)
         total_length = len(text)
         use_parallel = len(ranges) > 1_000 and total_length >= 1_000_000
 
         if use_parallel:
-            group_count = min(4, max(1, cpu_count()))
+            group_count = min(4, cpu_count())
             groups = chunk_ranges(ranges, group_count)
 
             with Pool(processes=group_count) as pool:
-                if fast_ok:
-                    # parallel indexed
-                    results = pool.map(
-                        convert_range_group_indexed,
-                        [(text, group, merged_map, starter_idx, global_cap) for group in groups]
-                    )
-                else:
-                    # parallel legacy
-                    results = pool.map(
-                        convert_range_group,
-                        [(text, group, dictionaries, max_word_length, OpenCC.convert_segment) for group in groups]
-                    )
-            return "".join(results)
-
-        # Serial path
-        if fast_ok:
-            return "".join(
-                OpenCC.convert_segment_indexed(text[s:e], merged_map, starter_idx, global_cap)
-                for (s, e) in ranges
-            )
+                results = pool.map(
+                    convert_range_group,
+                    [
+                        (text, group, dictionaries, max_word_length, OpenCC.convert_segment)
+                        for group in groups
+                    ]
+                )
+            return ''.join(results)
         else:
-            return "".join(
-                OpenCC.convert_segment(text[s:e], dictionaries, max_word_length)
-                for (s, e) in ranges
+            return ''.join(
+                OpenCC.convert_segment(text[start:end], dictionaries, max_word_length)
+                for start, end in ranges
             )
 
     @staticmethod
@@ -356,7 +281,11 @@ class OpenCC:
         :param max_word_length: Maximum matching word length
         :return: Converted string
         """
-        if not segment or (len(segment) == 1 and segment in DELIMITERS):
+        if not segment:
+            return segment
+
+        # Check if segment is a single delimiter
+        if len(segment) == 1 and segment in DELIMITERS:
             return segment
 
         result = []
@@ -395,48 +324,6 @@ class OpenCC:
                 i += 1
 
         return ''.join(result)
-
-    @staticmethod
-    def convert_segment_indexed(segment: str, merged_map: dict, starter_index: StarterIndex, global_cap: int) -> str:
-        # Fast path: length mask + single merged map lookup
-        if not segment or (len(segment) == 1 and segment in DELIMITERS):
-            return segment
-
-        get = merged_map.get
-        seg = segment
-        out = []
-        i, n = 0, len(seg)
-
-        while i < n:
-            cp0 = ord(seg[i])
-            mask, cap = starter_index.get_mask_cap(cp0)
-            if mask == 0 or cap == 0:
-                out.append(seg[i])
-                i += 1
-                continue
-
-            rem = n - i
-            cap_here = min(rem, cap, global_cap)
-
-            m = mask & ((1 << cap_here) - 1)  # only consider feasible lengths
-            matched = False
-            while m:
-                L = m.bit_length()  # highest set bit → longest available length
-                s = seg[i:i + L]
-                repl = get(s)
-                if repl is not None:
-                    out.append(repl)
-                    i += L
-                    matched = True
-                    break
-                # clear that bit and try the next one down
-                m &= (1 << (L - 1)) - 1
-
-            if not matched:
-                out.append(seg[i])
-                i += 1
-
-        return "".join(out)
 
     def _get_dict_refs(self, config_key: str) -> Optional[DictRefs]:
         """Get cached DictRefs for a config to avoid recreation"""
@@ -826,15 +713,3 @@ def convert_range_group(args):
         convert_segment_fn(text[start:end], dictionaries, max_word_length)
         for start, end in group_ranges
     )
-
-
-def convert_range_group_indexed(args):
-    """
-    Pool task: convert one group of (start, end) ranges using the indexed fast path.
-    args = (text, group, merged_map, starter_index, global_cap)
-    """
-    text, group, merged_map, starter_index, global_cap = args
-    parts = []
-    for (s, e) in group:
-        parts.append(OpenCC.convert_segment_indexed(text[s:e], merged_map, starter_index, global_cap))
-    return "".join(parts)

@@ -7,11 +7,13 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox
 
-from opencc_cython import OpenCC
-# from opencc_purepy import OpenCC
+# from opencc_cython import OpenCC
+from opencc_purepy import OpenCC
+from opencc_purepy.office_helper import OFFICE_FORMATS, convert_office_doc
 # from opencc_jieba_pyo3 import OpenCC
 # from opencc_py import OpenCC
 # from opencc_pyo3 import OpenCC
+# from opencc_pyo3.office_helper import OFFICE_FORMATS, convert_office_doc
 # from opencc_rs import OpenCC
 # Important:
 # You need to run the following command to generate the ui_form.py file
@@ -192,25 +194,37 @@ class MainWindow(QMainWindow):
                 for index in range(self.ui.listSource.count()):
                     file_path: str = self.ui.listSource.item(index).text()
                     file_base_path, file_extension = os.path.splitext(file_path)
+                    ext = file_extension.lstrip(".")
                     if os.path.exists(file_path):
-                        input_text = ""
-                        try:
-                            with open(file_path, "r", encoding="utf-8") as f:
-                                input_text = f.read()
-                        except UnicodeDecodeError:
-                            input_text = ""
+                        output_filename = self.ui.lineEditDir.text() + f"/{os.path.basename(file_base_path)}_{config}.{ext}"
+                        if ext in OFFICE_FORMATS:
+                            success, message = convert_office_doc(file_path, output_filename, ext, self.converter,
+                                                                  is_punctuation, True)
+                            if success:
+                                self.ui.tbPreview.appendPlainText(
+                                    f"{index + 1}: {output_filename} -> {message} -> Done.")
+                            else:
+                                self.ui.tbPreview.appendPlainText(f"{index + 1}: {file_path} -> Skip: {message}.")
+                            continue
 
-                        if input_text:
-                            converted_text = self.converter.convert(input_text, self.ui.cbPunct.isChecked())
-
-                            output_filename = self.ui.lineEditDir.text() + f"/{os.path.basename(file_base_path)}_{config}.{file_extension}"
-                            with open(output_filename, "w", encoding="utf-8") as f:
-                                f.write(converted_text)
-                            self.ui.tbPreview.appendPlainText(f"{index + 1}: {output_filename} --> Done.")
                         else:
-                            self.ui.tbPreview.appendPlainText(f"{index + 1}: {file_path} --> Skip: Not text file.")
+                            input_text = ""
+                            try:
+                                with open(file_path, "r", encoding="utf-8") as f:
+                                    input_text = f.read()
+                            except UnicodeDecodeError:
+                                input_text = ""
+
+                            if input_text:
+                                converted_text = self.converter.convert(input_text, self.ui.cbPunct.isChecked())
+
+                                with open(output_filename, "w", encoding="utf-8") as f:
+                                    f.write(converted_text)
+                                self.ui.tbPreview.appendPlainText(f"{index + 1}: {output_filename} -> Done.")
+                            else:
+                                self.ui.tbPreview.appendPlainText(f"{index + 1}: {file_path} -> Skip: Not text file.")
                     else:
-                        self.ui.tbPreview.appendPlainText(f"{index + 1}: {file_path} --> File not found.")
+                        self.ui.tbPreview.appendPlainText(f"{index + 1}: {file_path} -> File not found.")
                 self.ui.statusbar.showMessage("Process completed")
 
     def update_source_code(self, text_code):
@@ -238,7 +252,12 @@ class MainWindow(QMainWindow):
         self.ui.statusbar.showMessage(f"File saved to {filename[0]}")
 
     def btn_add_clicked(self):
-        files, _ = QFileDialog.getOpenFileNames(self, "Add Files", "", "Text Files (*.txt);;All Files (*.*)")
+        files, _ = QFileDialog.getOpenFileNames(
+            self,
+            "Add Files",
+            "",
+            "Text Files (*.txt);;Office Files (*.docx *.xlsx *.pptx *.odt *.ods *.odp *.epub);;All Files (*.*)"
+        )
         if files:
             self.display_file_list(files)
             self.ui.statusbar.showMessage("File(s) added.")
@@ -318,6 +337,7 @@ class MainWindow(QMainWindow):
 
 def btn_exit_click():
     QApplication.quit()
+
 
 def get_text_code(text):
     return OpenCC().zho_check(text)

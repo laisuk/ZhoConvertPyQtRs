@@ -59,20 +59,7 @@ def convert_office_doc(
 
     try:
         with zipfile.ZipFile(input_path, 'r') as archive:
-            # archive.extractall(temp_dir)
-            for entry in archive.infolist():
-                # Prevent Zip Slip
-                dest_path = temp_dir / entry.filename
-                resolved_path = dest_path.resolve()
-                if not str(resolved_path).startswith(str(temp_dir.resolve())):
-                    return False, f"❌ Unsafe ZIP path detected: {entry.filename}"
-
-                if entry.is_dir():
-                    resolved_path.mkdir(parents=True, exist_ok=True)
-                else:
-                    resolved_path.parent.mkdir(parents=True, exist_ok=True)
-                    with archive.open(entry) as src, open(resolved_path, 'wb') as dst:
-                        shutil.copyfileobj(src, dst)  # type: ignore
+            archive.extractall(temp_dir)
 
         target_paths = _get_target_xml_paths(office_format, temp_dir)
         if not target_paths:
@@ -169,7 +156,7 @@ def _get_target_xml_paths(office_format: str, base_dir: Path) -> Optional[List[P
         return [
             path.relative_to(base_dir)
             for path in base_dir.rglob("*")
-            if path.suffix.lower() in (".xhtml", ".html", ".opf", ".ncx")
+            if path.suffix.lower() in (".xhtml", ".opf", ".ncx")
         ]
     return None
 
