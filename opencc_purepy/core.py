@@ -1,23 +1,15 @@
 import re
 from multiprocessing import Pool, cpu_count
+from typing import Dict, Iterable, List, Tuple
 
-from .merge_dicts import merge_in_precedence
-from .starter_index import StarterIndex
+from .dict_refs import DictRefs
 from .dictionary_lib import DictionaryMaxlength
+from .union_cache import UnionKey
 
 try:
-    from typing import List, Dict, Tuple, Optional, Iterable, Mapping
-except ImportError:
-    # Fallback for Python < 3.5
-    List = list
-    Dict = dict
-    Tuple = tuple
-    Iterable = list
-    Mapping = dict
-
-
-    def Optional(x):  # type: ignore
-        return x
+    from .starter_union import StarterUnion
+except ImportError:  # pragma: no cover
+    StarterUnion = Any  # type: ignore
 
 # Pre-compiled regex for better performance
 STRIP_REGEX = re.compile(r"[!-/:-@\[-`{-~\t\n\v\f\r 0-9A-Za-z_著]")
@@ -59,70 +51,6 @@ except (AttributeError, TypeError):
     }
 
 
-class DictRefs:
-    """
-    A utility class that wraps up to 3 rounds of dictionary applications
-    to be used in multi-pass segment-replacement conversions.
-    """
-    __slots__ = ['round_1', 'round_2', 'round_3', '_max_lengths']
-
-    def __init__(self, round_1):
-        """
-        :param round_1: First list of dictionaries to apply (required)
-        """
-        self.round_1 = round_1
-        self.round_2 = None
-        self.round_3 = None
-        self._max_lengths = None
-
-    def with_round_2(self, round_2):
-        """
-        :param round_2: Second list of dictionaries (optional)
-        :return: self (for chaining)
-        """
-        self.round_2 = round_2
-        self._max_lengths = None  # Reset cache
-        return self
-
-    def with_round_3(self, round_3):
-        """
-        :param round_3: Third list of dictionaries (optional)
-        :return: self (for chaining)
-        """
-        self.round_3 = round_3
-        self._max_lengths = None  # Reset cache
-        return self
-
-    def _get_max_lengths(self):
-        """Cache max lengths for each round to avoid recomputation"""
-        if self._max_lengths is None:
-            self._max_lengths = []
-            for round_dicts in [self.round_1, self.round_2, self.round_3]:
-                if round_dicts:
-                    max_len = max((length for _, length in round_dicts), default=1)
-                    self._max_lengths.append(max_len)
-                else:
-                    self._max_lengths.append(0)
-        return self._max_lengths
-
-    def apply_segment_replace(self, input_text, segment_replace):
-        """
-        Apply segment-based replacement using the configured rounds.
-
-        :param input_text: The string to transform
-        :param segment_replace: The function to apply per segment
-        :return: Transformed string
-        """
-        max_lengths = self._get_max_lengths()
-
-        output = segment_replace(input_text, self.round_1, max_lengths[0])
-        if self.round_2:
-            output = segment_replace(output, self.round_2, max_lengths[1])
-        if self.round_3:
-            output = segment_replace(output, self.round_3, max_lengths[2])
-        return output
-
-
 class OpenCC:
     """
     A pure-Python implementation of OpenCC for text conversion between
@@ -141,11 +69,6 @@ class OpenCC:
         """
         self._last_error = None
         self._config_cache = {}
-        self._fast_cache = {}
-        self._merged_cache = {}
-        self._starter_idx_cache = {}
-        # id(dict) -> fingerprint tuple
-        self._fp_cache: dict[int, tuple] = {}
 
         if config in self.CONFIG_LIST:
             self.config = config
@@ -159,6 +82,8 @@ class OpenCC:
             self._last_error = str(e)
             self.dictionary = DictionaryMaxlength()
 
+        from .union_cache import UnionCache
+        self.union_cache = UnionCache(self.dictionary)
         self.delimiters = DELIMITERS
         # Escape special regex characters in delimiters
         escaped_delimiters = ''.join(map(re.escape, self.delimiters))
@@ -234,58 +159,6 @@ class OpenCC:
 
         return ranges
 
-    @staticmethod
-    def _make_fp(d: dict, maxlen: int) -> tuple:
-        """
-        Create a cheap, process-local fingerprint for a dictionary.
-
-        The fingerprint is a tuple:
-            ("id", id(d), len(d), maxlen)
-
-        Parameters
-        ----------
-        d : dict
-            Dictionary to fingerprint. Must remain immutable after this call
-            for the fingerprint to stay valid.
-        maxlen : int
-            Maximum key length for this dictionary (precomputed).
-
-        Returns
-        -------
-        tuple
-            Process-local fingerprint tuple.
-        """
-        return "id", id(d), len(d), maxlen
-
-    def _dict_fp(self, dict_tuple: tuple) -> tuple:
-        """
-        Return a cached fingerprint for a (dict, maxlen) tuple.
-
-        Parameters
-        ----------
-        dict_tuple : tuple,
-            Tuple of (dict, maxlen) as stored in DictionaryMaxlength fields.
-
-        Returns
-        -------
-        tuple
-            Cached fingerprint, or a newly created one if not yet cached.
-
-        Notes
-        -----
-        - Uses `id(dict)` as the cache key, making the result process-local.
-        - Assumes dictionaries are immutable after build; if mutated, the
-          fingerprint may be stale.
-        """
-        d, max_len = dict_tuple
-        k = id(d)
-        fp = self._fp_cache.get(k)
-        if fp is not None:
-            return fp
-        fp = self._make_fp(d, max_len)
-        self._fp_cache[k] = fp
-        return fp
-
     def segment_replace(
             self,
             text: str,
@@ -293,32 +166,13 @@ class OpenCC:
             max_word_length: int
     ) -> str:
         """
-        Perform dictionary-based greedy replacement on segmented text.
+        Perform dictionary-based greedy replacement on segmented text (legacy path).
 
-        This method:
-          1. Splits the input string into segments based on predefined delimiters.
-          2. Applies greedy maximum-length replacement within each segment using
-             the provided dictionaries (in precedence order).
-          3. Chooses the most efficient conversion path based on available indexes
-             and workload size.
-
-        Conversion paths
-        ----------------
-        * **Indexed fast path** — Used when a `StarterIndex` is available:
-            - Merges all dictionaries into a single precedence-ordered map.
-            - Uses the `StarterIndex` to skip impossible matches and speed up lookups.
-            - Parallelizable with `convert_range_group_indexed`.
-        * **Legacy path** — Used when no index is available:
-            - Directly applies each dictionary in precedence order to each segment.
-            - Parallelizable with `convert_range_group`.
-
-        Parallel execution
-        ------------------
-        Parallel processing is triggered when:
-            - `len(ranges)` > 1,000 **and**
-            - `len(text)` ≥ 1,000,000 characters.
-        In this case, segments are split into up to 4 groups and processed
-        in a multiprocessing pool.
+        This version is simplified to work cleanly with DictRefs normalization:
+        - No StarterIndex / fast-path logic.
+        - Accepts a round's `dictionaries` as List[(dict, max_len)] and a round
+          `max_word_length` (already computed by DictRefs).
+        - Keeps the existing parallelization behavior.
 
         Parameters
         ----------
@@ -326,92 +180,24 @@ class OpenCC:
             The input text to be converted.
         dictionaries : list of (dict, int)
             Sequence of dictionaries and their respective maximum key lengths.
-            The order determines replacement precedence (last overrides first).
+            The order determines replacement precedence (earlier wins).
         max_word_length : int
-            Global maximum match length, capped by actual dictionary contents.
+            Global maximum match length for this round (from DictRefs).
 
         Returns
         -------
         str
-            The converted text after all replacements.
-
-        Notes
-        -----
-        - The indexed fast path is only possible if:
-            * A prebuilt `StarterIndex` is present in `self.dictionary` and has
-              `global_cap >= max_word_length`, or
-            * A new `StarterIndex` can be built from `dictionaries` without error.
-        - A per-call `dict_sig` fingerprint is computed to cache merged maps
-          and starter indexes for reuse.
-        - Falls back to the legacy path if index construction fails.
-        - For a single segment equal to the whole text, conversion is done in one
-          call without splitting overhead.
-
-        See Also
-        --------
-        OpenCC.convert_segment_indexed : Indexed segment conversion.
-        OpenCC.convert_segment         : Legacy segment conversion.
-        StarterIndex.build             : Index construction from dictionaries.
+            Converted text.
         """
         if not text:
             return text
 
-        # ----- Fast-path prep: merged precedence map + starter index -----
-        active_dicts = [d for (d, _m) in dictionaries]
-        dict_sig = tuple(self._dict_fp(dict_tuple) for dict_tuple in dictionaries)
-
-        cap_from_dicts = max((maxlen for _, maxlen in dictionaries), default=0)
-        global_cap = min(max_word_length, cap_from_dicts) if cap_from_dicts else max_word_length
-
-        fast_key = (dict_sig, global_cap)
-        _fast = self._fast_cache.get(fast_key)
-
-        if _fast is None:
-            # 1) merged map
-            merged_map = self._merged_cache.get(dict_sig)
-            if merged_map is None:
-                merged_map = merge_in_precedence(active_dicts)
-                self._merged_cache[dict_sig] = merged_map
-
-            # 2) starter index
-            idx_key = (dict_sig, global_cap)
-            starter_idx = self._starter_idx_cache.get(idx_key)
-            if starter_idx is None:
-                idx = None
-                # Try to reuse prebuilt global index if sufficient
-                if getattr(self, "dictionary", None):
-                    try:
-                        idx = self.dictionary.try_get_starter_index()
-                        if idx and getattr(idx, "global_cap", 0) < global_cap:
-                            idx = None
-                    except (TypeError, KeyError, ValueError):
-                        idx = None
-
-                if idx is None:
-                    try:
-                        starter_idx = StarterIndex.build(active_dicts, global_cap)
-                    except (TypeError, KeyError, ValueError):
-                        starter_idx = None
-                else:
-                    starter_idx = idx
-
-                self._starter_idx_cache[idx_key] = starter_idx
-
-            _fast = (merged_map, starter_idx, global_cap)
-            self._fast_cache[fast_key] = _fast
-
-        merged_map, starter_idx, global_cap = _fast
-        fast_ok = starter_idx is not None
-
-        # ----- Split into segments -----
+        # Split into segments (inclusive keeps delimiters attached to segments)
         ranges = self.get_split_ranges(text, inclusive=True)
 
-        # Single segment → straight convert
+        # Single segment → direct convert (avoids slicing/join overhead)
         if len(ranges) == 1 and ranges[0] == (0, len(text)):
-            if fast_ok:
-                return OpenCC.convert_segment_indexed(text, merged_map, starter_idx, global_cap)
-            else:
-                return OpenCC.convert_segment(text, dictionaries, max_word_length)
+            return OpenCC.convert_segment(text, dictionaries, max_word_length)
 
         # Parallel threshold
         total_length = len(text)
@@ -420,31 +206,18 @@ class OpenCC:
         if use_parallel:
             group_count = min(4, max(1, cpu_count()))
             groups = chunk_ranges(ranges, group_count)
-
             with Pool(processes=group_count) as pool:
-                if fast_ok:
-                    results = pool.map(
-                        convert_range_group_indexed,
-                        [(text, group, merged_map, starter_idx, global_cap) for group in groups]
-                    )
-                else:
-                    results = pool.map(
-                        convert_range_group,
-                        [(text, group, dictionaries, max_word_length, OpenCC.convert_segment) for group in groups]
-                    )
+                results = pool.map(
+                    convert_range_group,
+                    [(text, group, dictionaries, max_word_length, OpenCC.convert_segment) for group in groups],
+                )
             return "".join(results)
 
         # Serial path
-        if fast_ok:
-            return "".join(
-                OpenCC.convert_segment_indexed(text[s:e], merged_map, starter_idx, global_cap)
-                for (s, e) in ranges
-            )
-        else:
-            return "".join(
-                OpenCC.convert_segment(text[s:e], dictionaries, max_word_length)
-                for (s, e) in ranges
-            )
+        return "".join(
+            OpenCC.convert_segment(text[s:e], dictionaries, max_word_length)
+            for (s, e) in ranges
+        )
 
     @staticmethod
     def convert_segment(segment: str, dictionaries, max_word_length: int) -> str:
@@ -496,168 +269,202 @@ class OpenCC:
 
         return ''.join(result)
 
+    def segment_replace_union(self, text: str, union) -> str:
+        """
+        Greedy replacement on segmented text using a StarterUnion
+        (uses convert_segment_union internally).
+        """
+        if not text:
+            return text
+
+        # Ensure masks/caps are ready (no-op if already built)
+        if not getattr(union, "_indexed", False):
+            union.build_starter_index()
+
+        ranges = self.get_split_ranges(text, inclusive=True)
+
+        # Single segment → direct
+        if len(ranges) == 1 and ranges[0] == (0, len(text)):
+            return OpenCC.convert_segment_union(text, union)
+
+        # Parallel threshold (same as legacy)
+        total_length = len(text)
+        use_parallel = len(ranges) > 1_000 and total_length >= 1_000_000
+
+        if use_parallel:
+            group_count = min(4, max(1, cpu_count()))
+            groups = chunk_ranges(ranges, group_count)
+            with Pool(processes=group_count) as pool:
+                results = pool.map(
+                    convert_range_group_union,
+                    [(text, group, union) for group in groups],
+                )
+            return "".join(results)
+
+        # Serial
+        return "".join(
+            OpenCC.convert_segment_union(text[s:e], union)
+            for (s, e) in ranges
+        )
+
     @staticmethod
-    def convert_segment_indexed(
-            segment: str,
-            merged_map: dict,
-            starter_index: StarterIndex,
-            global_cap: int
-    ) -> str:
+    def convert_segment_union(segment: str, union) -> str:
         """
-        Convert a single text segment using the indexed fast path.
-
-        This method applies greedy maximum-length matching using:
-          * A single precedence-merged replacement map (`merged_map`)
-          * A `StarterIndex` providing:
-              - A per-starter length bitmask
-              - A per-starter maximum length (`cap`)
-          * The `global_cap` limit, to avoid over-matching beyond configured max length
-
-        Algorithm
-        ---------
-        1. Skip processing for empty strings or single-character delimiters.
-        2. For each character position `i` in the segment:
-           a. Look up `(mask, cap)` from the starter index using the current codepoint.
-           b. If `mask == 0` or `cap == 0`, append the character as-is and advance 1.
-           c. Otherwise:
-              - Compute `cap_here = min(remaining_length, cap, global_cap)`
-              - Restrict `mask` to lengths ≤ `cap_here`
-              - Try lengths from longest to shortest by:
-                  * Extracting the substring
-                  * Looking it up in `merged_map`
-                  * On first match, append replacement, advance `i` by length, break
-              - If no match found, append current character and advance 1.
-        3. Join and return all collected output parts.
-
-        Parameters
-        ----------
-        segment : str
-            The text segment to convert (no delimiters inside).
-        merged_map : dict[str, str]
-            Precedence-merged dictionary mapping source strings to replacements.
-        starter_index : StarterIndex
-            Index providing possible match lengths per starting codepoint.
-        global_cap : int
-            Global maximum match length (1–64).
-
-        Returns
-        -------
-        str
-            Converted segment with replacements applied.
-
-        Notes
-        -----
-        - `starter_index` is expected to be built from the same dictionaries that
-          produced `merged_map`.
-        - This is an O(n) scan with constant-time candidate filtering via bitmask.
-        - Bit order in the mask: bit 0 = length 1, bit 1 = length 2, ..., bit 63 = length 64.
-        - Falls back to character-by-character copying if no possible matches.
+        Greedy longest-match conversion for a single segment using StarterUnion.
+        Optimized to walk only the lengths that actually exist (mask bits).
         """
-        # Fast skip for trivial cases
-        if not segment or (len(segment) == 1 and segment in DELIMITERS):
+        if not segment:
             return segment
 
-        get = merged_map.get
-        seg = segment
+        # Ensure starter index is ready (no-op if already built)
+        if not getattr(union, "_indexed", False):
+            union.build_starter_index()
+
+        s = segment
+        n = len(s)
+        i = 0
+
+        merged_map = union.merged_map
+        get = merged_map.get  # local bind
         out = []
-        i, n = 0, len(seg)
+        append = out.append
+
+        bmp_mask = union.bmp_mask
+        bmp_cap = union.bmp_cap
+        a_mask = union.astral_mask
+        a_cap = union.astral_cap
+        global_cap = int(union.cap) if union.cap else 0
 
         while i < n:
-            cp0 = ord(seg[i])
-            mask, cap = starter_index.get_mask_cap(cp0)
-            if mask == 0 or cap == 0:
-                out.append(seg[i])
+            c0 = s[i]
+            code = ord(c0)
+            rem = n - i
+
+            # Per-starter mask and cap
+            if code <= 0xFFFF:
+                mask = bmp_mask[code]
+                cap_here = bmp_cap[code]
+            else:
+                mask = a_mask.get(c0, 0)
+                cap_here = a_cap.get(c0, 0)
+
+            if not mask or not cap_here:
+                append(c0)
                 i += 1
                 continue
 
-            rem = n - i
-            cap_here = min(rem, cap, global_cap)
+            # Effective cap for this position
+            cap_eff = cap_here
+            if global_cap and global_cap < cap_eff:
+                cap_eff = global_cap
+            if rem < cap_eff:
+                cap_eff = rem
 
-            # Restrict mask to feasible lengths only
-            m = mask & ((1 << cap_here) - 1)
             matched = False
-            while m:
-                # Highest set bit index = longest candidate length
-                L = m.bit_length()
-                s = seg[i:i + L]
-                repl = get(s)
-                if repl is not None:
-                    out.append(repl)
-                    i += L
-                    matched = True
-                    break
-                # Clear the bit for length L and try shorter
-                m &= (1 << (L - 1)) - 1
+
+            # Handle lengths > 63 (rare; CAP bit is 63). If cap_eff > 63, we must try those exact
+            # lengths first because the mask only tells us ">=64" via bit63, not which exact lengths.
+            if cap_eff > 63:
+                L = cap_eff
+                while L >= 64:
+                    repl = get(s[i:i + L])
+                    if repl is not None:
+                        append(repl)
+                        i += L
+                        matched = True
+                        break
+                    L -= 1
 
             if not matched:
-                out.append(seg[i])
+                # Restrict mask to <= cap_eff
+                m = mask
+                if cap_eff < 64:
+                    m &= (1 << cap_eff) - 1  # keep only bits [0..cap_eff-1]
+                else:
+                    m &= (1 << 63) - 1  # drop CAP bit; we already tried >=64 above
+
+                # Walk set bits from longest to shortest
+                while m:
+                    bit_index = m.bit_length()  # 1..63
+                    L = bit_index  # bit k -> length k
+                    repl = get(s[i:i + L])
+                    if repl is not None:
+                        append(repl)
+                        i += L
+                        matched = True
+                        break
+                    # clear that bit
+                    m ^= 1 << (bit_index - 1)
+
+            if not matched:
+                append(c0)
                 i += 1
 
         return "".join(out)
 
-    def _get_dict_refs(self, config_key: str) -> Optional[DictRefs]:
-        """Get cached DictRefs for a config to avoid recreation"""
-        if config_key in self._config_cache:
-            return self._config_cache[config_key]
-
-        refs = None
-        d = self.dictionary
-
-        if config_key == "s2t":
-            refs = DictRefs([d.st_phrases, d.st_characters])
-        elif config_key == "t2s":
-            refs = DictRefs([d.ts_phrases, d.ts_characters])
-        elif config_key == "s2tw":
-            refs = (DictRefs([d.st_phrases, d.st_characters])
-                    .with_round_2([d.tw_variants]))
-        elif config_key == "tw2s":
-            refs = (DictRefs([d.tw_variants_rev_phrases, d.tw_variants_rev])
-                    .with_round_2([d.ts_phrases, d.ts_characters]))
-        elif config_key == "s2twp":
-            refs = (DictRefs([d.st_phrases, d.st_characters])
-                    .with_round_2([d.tw_phrases])
-                    .with_round_3([d.tw_variants]))
-        elif config_key == "tw2sp":
-            refs = (DictRefs([d.tw_phrases_rev, d.tw_variants_rev_phrases, d.tw_variants_rev])
-                    .with_round_2([d.ts_phrases, d.ts_characters]))
-        elif config_key == "s2hk":
-            refs = (DictRefs([d.st_phrases, d.st_characters])
-                    .with_round_2([d.hk_variants]))
-        elif config_key == "hk2s":
-            refs = (DictRefs([d.hk_variants_rev_phrases, d.hk_variants_rev])
-                    .with_round_2([d.ts_phrases, d.ts_characters]))
-
-        # ------------ Newly added configs ------------
-        elif config_key == "t2tw":
-            # Traditional → Taiwan standard (variants only)
-            refs = DictRefs([d.tw_variants])
-        elif config_key == "t2twp":
-            # Traditional → Taiwan standard with phrases
-            refs = (DictRefs([d.tw_phrases])
-                    .with_round_2([d.tw_variants]))
-        elif config_key == "tw2t":
-            # Taiwan standard → Generic Traditional (reverse)
-            refs = DictRefs([d.tw_variants_rev_phrases, d.tw_variants_rev])
-        elif config_key == "tw2tp":
-            # Taiwan standard → Generic Traditional with phrase reverse
-            refs = (DictRefs([d.tw_variants_rev_phrases, d.tw_variants_rev])
-                    .with_round_2([d.tw_phrases_rev]))
-        elif config_key == "t2hk":
-            # Traditional → Hong Kong standard
-            refs = DictRefs([d.hk_variants])
-        elif config_key == "hk2t":
-            # Hong Kong standard → Generic Traditional (reverse)
-            refs = DictRefs([d.hk_variants_rev_phrases, d.hk_variants_rev])
-        elif config_key == "t2jp":
-            # Traditional → Japanese forms (Shinjitai + JP variants)
-            refs = DictRefs([d.jp_variants])
-        elif config_key == "jp2t":
-            # Japanese Shinjitai → Traditional
-            refs = DictRefs([d.jps_phrases, d.jps_characters, d.jp_variants_rev])
-
-        if refs:
-            self._config_cache[config_key] = refs
-        return refs
+    # def _get_dict_refs(self, config_key: str) -> Optional[DictRefs]:
+    #     """Get cached DictRefs for a config to avoid recreation"""
+    #     if config_key in self._config_cache:
+    #         return self._config_cache[config_key]
+    #
+    #     refs = None
+    #     d = self.dictionary
+    #
+    #     if config_key == "s2t":
+    #         refs = DictRefs([d.st_phrases, d.st_characters])
+    #     elif config_key == "t2s":
+    #         refs = DictRefs([d.ts_phrases, d.ts_characters])
+    #     elif config_key == "s2tw":
+    #         refs = (DictRefs([d.st_phrases, d.st_characters])
+    #                 .with_round_2([d.tw_variants]))
+    #     elif config_key == "tw2s":
+    #         refs = (DictRefs([d.tw_variants_rev_phrases, d.tw_variants_rev])
+    #                 .with_round_2([d.ts_phrases, d.ts_characters]))
+    #     elif config_key == "s2twp":
+    #         refs = (DictRefs([d.st_phrases, d.st_characters])
+    #                 .with_round_2([d.tw_phrases])
+    #                 .with_round_3([d.tw_variants]))
+    #     elif config_key == "tw2sp":
+    #         refs = (DictRefs([d.tw_phrases_rev, d.tw_variants_rev_phrases, d.tw_variants_rev])
+    #                 .with_round_2([d.ts_phrases, d.ts_characters]))
+    #     elif config_key == "s2hk":
+    #         refs = (DictRefs([d.st_phrases, d.st_characters])
+    #                 .with_round_2([d.hk_variants]))
+    #     elif config_key == "hk2s":
+    #         refs = (DictRefs([d.hk_variants_rev_phrases, d.hk_variants_rev])
+    #                 .with_round_2([d.ts_phrases, d.ts_characters]))
+    #
+    #     # ------------ Newly added configs ------------
+    #     elif config_key == "t2tw":
+    #         # Traditional → Taiwan standard (variants only)
+    #         refs = DictRefs([d.tw_variants])
+    #     elif config_key == "t2twp":
+    #         # Traditional → Taiwan standard with phrases
+    #         refs = (DictRefs([d.tw_phrases])
+    #                 .with_round_2([d.tw_variants]))
+    #     elif config_key == "tw2t":
+    #         # Taiwan standard → Generic Traditional (reverse)
+    #         refs = DictRefs([d.tw_variants_rev_phrases, d.tw_variants_rev])
+    #     elif config_key == "tw2tp":
+    #         # Taiwan standard → Generic Traditional with phrase reverse
+    #         refs = (DictRefs([d.tw_variants_rev_phrases, d.tw_variants_rev])
+    #                 .with_round_2([d.tw_phrases_rev]))
+    #     elif config_key == "t2hk":
+    #         # Traditional → Hong Kong standard
+    #         refs = DictRefs([d.hk_variants])
+    #     elif config_key == "hk2t":
+    #         # Hong Kong standard → Generic Traditional (reverse)
+    #         refs = DictRefs([d.hk_variants_rev_phrases, d.hk_variants_rev])
+    #     elif config_key == "t2jp":
+    #         # Traditional → Japanese forms (Shinjitai + JP variants)
+    #         refs = DictRefs([d.jp_variants])
+    #     elif config_key == "jp2t":
+    #         # Japanese Shinjitai → Traditional
+    #         refs = DictRefs([d.jps_phrases, d.jps_characters, d.jp_variants_rev])
+    #
+    #     if refs:
+    #         self._config_cache[config_key] = refs
+    #     return refs
 
     @staticmethod
     def _convert_punctuation_legacy(text, punct_map):
@@ -674,205 +481,226 @@ class OpenCC:
             result.append(punct_map.get(char, char))
         return ''.join(result)
 
-    def s2t(self, input_text, punctuation=False):
+    def s2t(self, input_text: str, punctuation: bool = False) -> str:
         """
-        Convert Simplified Chinese to Traditional Chinese.
-
-        :param input_text: The source string in Simplified Chinese
-        :param punctuation: Whether to convert punctuation
-        :return: Transformed string in Traditional Chinese
+        Simplified -> Traditional (no punctuation in dicts; optional separate pass).
         """
-        refs = self._get_dict_refs("s2t")
-        output = refs.apply_segment_replace(input_text, self.segment_replace)
+        refs = DictRefs(self.union_cache.ensure_indexed(UnionKey.S2T))
+        output = refs.apply_union_replace(input_text, self.segment_replace_union)
 
         if punctuation:
             if HAS_MAKETRANS:
                 return output.translate(PUNCT_S2T_MAP)
-            else:
-                return self._convert_punctuation_legacy(output, PUNCT_S2T_MAP)
+            return self._convert_punctuation_legacy(output, PUNCT_S2T_MAP)
         return output
 
-    def t2s(self, input_text, punctuation=False):
+    def t2s(self, input_text: str, punctuation: bool = False) -> str:
         """
-        Convert Traditional Chinese to Simplified Chinese.
-
-        :param input_text: The source string in Traditional Chinese
-        :param punctuation: Whether to convert punctuation
-        :return: Transformed string in Simplified Chinese
+        Traditional -> Simplified (no punctuation in dicts; optional separate pass).
         """
-        refs = self._get_dict_refs("t2s")
-        output = refs.apply_segment_replace(input_text, self.segment_replace)
+        refs = DictRefs(self.union_cache.ensure_indexed(UnionKey.T2S))
+        output = refs.apply_union_replace(input_text, self.segment_replace_union)
 
         if punctuation:
+            # reverse of S2T_MAP if you have one; else use your legacy map for T->S
             if HAS_MAKETRANS:
                 return output.translate(PUNCT_T2S_MAP)
-            else:
-                return self._convert_punctuation_legacy(output, PUNCT_T2S_MAP)
+            return self._convert_punctuation_legacy(output, PUNCT_T2S_MAP)
         return output
 
-    def s2tw(self, input_text, punctuation=False):
+    def s2tw(self, input_text: str, punctuation: bool = False) -> str:
         """
-        Convert Simplified Chinese to Traditional Chinese (Taiwan Standard).
-
-        :param input_text: The source string
-        :param punctuation: Whether to convert punctuation
-        :return: Transformed string in Taiwan Traditional Chinese
+        Convert Simplified Chinese to Taiwan Standard Traditional Chinese.
+        Round 1: S2T (no punctuation in union)
+        Round 2: TW variants only
         """
-        refs = self._get_dict_refs("s2tw")
-        output = refs.apply_segment_replace(input_text, self.segment_replace)
+        refs = (
+            DictRefs(self.union_cache.ensure_indexed(UnionKey.S2T))
+            .with_round_2(self.union_cache.ensure_indexed(UnionKey.TwVariantsOnly))
+        )
+        output = refs.apply_union_replace(input_text, self.segment_replace_union)
 
         if punctuation:
+            # handle punctuation separately (S->T)
             if HAS_MAKETRANS:
                 return output.translate(PUNCT_S2T_MAP)
-            else:
-                return self._convert_punctuation_legacy(output, PUNCT_S2T_MAP)
+            return self._convert_punctuation_legacy(output, PUNCT_S2T_MAP)
+
         return output
 
-    def tw2s(self, input_text, punctuation=False):
+    def tw2s(self, input_text: str, punctuation: bool = False) -> str:
         """
         Convert Traditional Chinese (Taiwan) to Simplified Chinese.
 
-        :param input_text: The source string in Taiwan Traditional Chinese
-        :param punctuation: Whether to convert punctuation
-        :return: Transformed string in Simplified Chinese
+        Pipeline:
+          1) TW reverse localization (variants + rev-phrases)
+          2) T2S
+          3) Optional punctuation T->S
         """
-        refs = self._get_dict_refs("tw2s")
-        output = refs.apply_segment_replace(input_text, self.segment_replace)
+        refs = (
+            DictRefs(self.union_cache.ensure_indexed(UnionKey.TwRevPair))
+            .with_round_2(self.union_cache.ensure_indexed(UnionKey.T2S))
+        )
+
+        output = refs.apply_union_replace(input_text, self.segment_replace_union)
 
         if punctuation:
             if HAS_MAKETRANS:
                 return output.translate(PUNCT_T2S_MAP)
-            else:
-                return self._convert_punctuation_legacy(output, PUNCT_T2S_MAP)
+            return self._convert_punctuation_legacy(output, PUNCT_T2S_MAP)
         return output
 
-    def s2twp(self, input_text, punctuation=False):
+    def s2twp(self, input_text: str, punctuation: bool = False) -> str:
         """
-        Convert Simplified Chinese to Traditional (Taiwan) using phrases + variants.
-
-        :param input_text: The source string
-        :param punctuation: Whether to convert punctuation
-        :return: Transformed string
+        Simplified -> Traditional (Taiwan) using S2T, then TW phrases, then TW variants.
         """
-        refs = self._get_dict_refs("s2twp")
-        output = refs.apply_segment_replace(input_text, self.segment_replace)
+        refs = (
+            DictRefs(self.union_cache.ensure_indexed(UnionKey.S2T))  # round 1
+            .with_round_2(self.union_cache.ensure_indexed(UnionKey.TwPhrasesOnly))  # round 2
+            .with_round_3(self.union_cache.ensure_indexed(UnionKey.TwVariantsOnly))  # round 3
+        )
+        output = refs.apply_union_replace(input_text, self.segment_replace_union)
 
         if punctuation:
+            # Handle S->T punctuation as a separate pass
             if HAS_MAKETRANS:
                 return output.translate(PUNCT_S2T_MAP)
-            else:
-                return self._convert_punctuation_legacy(output, PUNCT_S2T_MAP)
+            return self._convert_punctuation_legacy(output, PUNCT_S2T_MAP)
+
         return output
 
-    def tw2sp(self, input_text, punctuation=False):
+    def tw2sp(self, input_text: str, punctuation: bool = False) -> str:
         """
-        Convert Traditional (Taiwan) with phrases to Simplified Chinese.
+        Traditional (Taiwan) -> Simplified (phrases+chars), optional T->S punctuation.
 
-        :param input_text: The source string
-        :param punctuation: Whether to convert punctuation
-        :return: Transformed string
+        Round 1: TW reverse triple (tw_phrases_rev, tw_variants_rev_phrases, tw_variants_rev)
+        Round 2: T2S (phrases + characters)
         """
-        refs = self._get_dict_refs("tw2sp")
-        output = refs.apply_segment_replace(input_text, self.segment_replace)
+        refs = (
+            DictRefs(self.union_cache.ensure_indexed(UnionKey.Tw2SpR1TwRevTriple))
+            .with_round_2(self.union_cache.ensure_indexed(UnionKey.T2S))
+        )
+        output = refs.apply_union_replace(input_text, self.segment_replace_union)
 
         if punctuation:
             if HAS_MAKETRANS:
                 return output.translate(PUNCT_T2S_MAP)
-            else:
-                return self._convert_punctuation_legacy(output, PUNCT_T2S_MAP)
+            return self._convert_punctuation_legacy(output, PUNCT_T2S_MAP)
         return output
 
-    def s2hk(self, input_text, punctuation=False):
+    def s2hk(self, input_text: str, punctuation: bool = False) -> str:
         """
         Convert Simplified Chinese to Traditional (Hong Kong Standard).
-
-        :param input_text: Simplified Chinese input
-        :param punctuation: Whether to convert punctuation
-        :return: Transformed string
+        Pipeline:
+          1) S2T
+          2) HK variants (forward)
+          3) Optional punctuation S->T
         """
-        refs = self._get_dict_refs("s2hk")
-        output = refs.apply_segment_replace(input_text, self.segment_replace)
+        refs = (
+            DictRefs(self.union_cache.ensure_indexed(UnionKey.S2T))
+            .with_round_2(self.union_cache.ensure_indexed(UnionKey.HkVariantsOnly))
+        )
+
+        output = refs.apply_union_replace(input_text, self.segment_replace_union)
 
         if punctuation:
             if HAS_MAKETRANS:
                 return output.translate(PUNCT_S2T_MAP)
-            else:
-                return self._convert_punctuation_legacy(output, PUNCT_S2T_MAP)
+            return self._convert_punctuation_legacy(output, PUNCT_S2T_MAP)
         return output
 
-    def hk2s(self, input_text, punctuation=False):
+    def hk2s(self, input_text: str, punctuation: bool = False) -> str:
         """
         Convert Traditional (Hong Kong) to Simplified Chinese.
 
-        :param input_text: Hong Kong Traditional Chinese input
-        :param punctuation: Whether to convert punctuation
-        :return: Simplified Chinese output
+        Pipeline:
+          1) HK reverse (variants + rev-phrases)
+          2) T2S
+          3) Optional punctuation T->S
         """
-        refs = self._get_dict_refs("hk2s")
-        output = refs.apply_segment_replace(input_text, self.segment_replace)
+        refs = (
+            DictRefs(self.union_cache.ensure_indexed(UnionKey.HkRevPair))
+            .with_round_2(self.union_cache.ensure_indexed(UnionKey.T2S))
+        )
+
+        output = refs.apply_union_replace(input_text, self.segment_replace_union)
 
         if punctuation:
             if HAS_MAKETRANS:
                 return output.translate(PUNCT_T2S_MAP)
-            else:
-                return self._convert_punctuation_legacy(output, PUNCT_T2S_MAP)
+            return self._convert_punctuation_legacy(output, PUNCT_T2S_MAP)
         return output
 
     def t2tw(self, input_text: str) -> str:
         """
-        Convert Traditional Chinese to Taiwan Standard Traditional Chinese.
+        Convert Traditional Chinese to Taiwan Standard Traditional Chinese (variants only).
         """
-        refs = self._get_dict_refs("t2tw")
-        return refs.apply_segment_replace(input_text, self.segment_replace)
+        refs = DictRefs(self.union_cache.ensure_indexed(UnionKey.TwVariantsOnly))
+        return refs.apply_union_replace(input_text, self.segment_replace_union)
 
     def t2twp(self, input_text: str) -> str:
         """
         Convert Traditional Chinese to Taiwan Standard using phrase and variant mappings.
+        Round 1: TW phrases only
+        Round 2: TW variants only
         """
-        refs = self._get_dict_refs("t2twp")
-        return refs.apply_segment_replace(input_text, self.segment_replace)
+        refs = (
+            DictRefs(self.union_cache.ensure_indexed(UnionKey.TwPhrasesOnly))
+            .with_round_2(self.union_cache.ensure_indexed(UnionKey.TwVariantsOnly))
+        )
+        return refs.apply_union_replace(input_text, self.segment_replace_union)
 
     def tw2t(self, input_text: str) -> str:
         """
-        Convert Taiwan Traditional to general Traditional Chinese.
+        Traditional (Taiwan) -> Traditional (normalize TW forms back to general T).
+        Round 1: TW reverse pair (variants_rev_phrases + variants_rev)
         """
-        refs = self._get_dict_refs("tw2t")
-        return refs.apply_segment_replace(input_text, self.segment_replace)
+        refs = DictRefs(self.union_cache.ensure_indexed(UnionKey.TwRevPair))
+        return refs.apply_union_replace(input_text, self.segment_replace_union)
 
     def tw2tp(self, input_text: str) -> str:
         """
-        Convert Taiwan Traditional to Traditional with phrase reversal.
+        Traditional (Taiwan) -> Traditional (normalized) with extra reverse phrase pass.
+
+        Round 1: TW reverse pair (variants_rev_phrases + variants_rev)
+        Round 2: TW phrases_rev only
         """
-        refs = self._get_dict_refs("tw2tp")
-        return refs.apply_segment_replace(input_text, self.segment_replace)
+        refs = (
+            DictRefs(self.union_cache.ensure_indexed(UnionKey.TwRevPair))
+            .with_round_2(self.union_cache.ensure_indexed(UnionKey.TwPhrasesRevOnly))
+        )
+        return refs.apply_union_replace(input_text, self.segment_replace_union)
 
     def t2hk(self, input_text: str) -> str:
         """
-        Convert Traditional Chinese to Hong Kong variant.
+        Traditional -> Traditional (Hong Kong Standard).
+        Round 1: HK variants only.
         """
-        refs = self._get_dict_refs("t2hk")
-        return refs.apply_segment_replace(input_text, self.segment_replace)
+        refs = DictRefs(self.union_cache.ensure_indexed(UnionKey.HkVariantsOnly))
+        return refs.apply_union_replace(input_text, self.segment_replace_union)
 
     def hk2t(self, input_text: str) -> str:
         """
-        Convert Hong Kong Traditional to standard Traditional Chinese.
+        Traditional (Hong Kong) -> Traditional (normalize HK forms back to general T).
+        Round 1: HK reverse pair (variants_rev_phrases + variants_rev)
         """
-        refs = self._get_dict_refs("hk2t")
-        return refs.apply_segment_replace(input_text, self.segment_replace)
+        refs = DictRefs(self.union_cache.ensure_indexed(UnionKey.HkRevPair))
+        return refs.apply_union_replace(input_text, self.segment_replace_union)
 
     def t2jp(self, input_text: str) -> str:
         """
-        Convert japanese Kyujitai  to Japanese Shinjitai.
+        Traditional -> Japanese variants (Shinjitai) using JP variants only.
         """
-        refs = self._get_dict_refs("t2jp")
-        return refs.apply_segment_replace(input_text, self.segment_replace)
+        refs = DictRefs(self.union_cache.ensure_indexed(UnionKey.JpVariantsOnly))
+        return refs.apply_union_replace(input_text, self.segment_replace_union)
 
     def jp2t(self, input_text: str) -> str:
         """
-        Convert Japanese Shinjitai (modern Kanji) to Kyujitai.
+        Japanese (Shinjitai) -> Traditional Chinese.
+        Round 1: JP reverse triple (jps_phrases, jps_characters, jp_variants_rev)
         """
-        refs = self._get_dict_refs("jp2t")
-        return refs.apply_segment_replace(input_text, self.segment_replace)
+        refs = DictRefs(self.union_cache.ensure_indexed(UnionKey.JpRevTriple))
+        return refs.apply_union_replace(input_text, self.segment_replace_union)
 
     def convert(self, input_text: str, punctuation: bool = False) -> str:
         """
@@ -1007,43 +835,7 @@ def convert_range_group(args):
     )
 
 
-def convert_range_group_indexed(args: Tuple[
-    str,  # text
-    Iterable[Tuple[int, int]],  # group of (start, end)
-    Mapping[str, str],  # merged_map
-    "StarterIndex",  # starter_index
-    int  # global_cap
-]) -> str:
-    """
-    Convert one group of (start, end) ranges using the indexed fast path.
-
-    Parameters
-    ----------
-    args : tuple
-        (text, group, merged_map, starter_index, global_cap)
-        - text: The full input text.
-        - group: Iterable of (start, end) indices into `text` for this worker.
-        - merged_map: Precedence-merged replacement map (str -> str).
-        - starter_index: StarterIndex instance for fast prefix pruning.
-        - global_cap: Maximum phrase length (capped to the index's global cap).
-
-    Returns
-    -------
-    str
-        Concatenated converted text for all ranges in `group`, in order.
-
-    Notes
-    -----
-    - This function is intended to be executed in a worker process.
-    - `starter_index` must be pickleable to cross process boundaries; if it isn't,
-      pass its serialized blob and rebuild it in the worker.
-    """
-    text, group, merged_map, starter_index, global_cap = args
-
-    # Local binds to avoid repeated global lookups in tight loops
-    convert_seg = OpenCC.convert_segment_indexed
-    append: List[str] = []
-    a = append.append
-    for s, e in group:
-        a(convert_seg(text[s:e], merged_map, starter_index, global_cap))
-    return "".join(append)
+def convert_range_group_union(args: Tuple[str, Iterable[Tuple[int, int]], "StarterUnion"]) -> str:
+    text, group, union = args
+    conv = OpenCC.convert_segment_union  # local bind
+    return "".join(conv(text[s:e], union) for (s, e) in group)
