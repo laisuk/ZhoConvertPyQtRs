@@ -1,6 +1,5 @@
 import os
 from .dictionary_lib import DictionaryMaxlength
-from .starter_index import StarterIndex
 
 BLUE = "\033[1;34m"
 RESET = "\033[0m"
@@ -14,42 +13,26 @@ def main(args):
     Args:
         args: Parsed command-line arguments with attributes:
             - format (str): Output format, currently supports 'json'.
-            - output (str): Output file path or None for default.
+            - output (str|None): Output file path or None for default.
+            - compact (bool): If True, write compact JSON (no indentation).
 
     Returns:
         int: Exit code (0 for success).
     """
-    # Set default output file name based on format
+    # Default output file per format
     default_output = {
         "json": "dictionary_maxlength.json"
     }[args.format]
 
-    # Use user-specified output file or default
     output_file = args.output or default_output
-    output_file_path = os.path.abspath(output_file)  # Get full path
+    output_file_path = os.path.abspath(output_file)
 
     # Generate dictionary data
     dictionaries = DictionaryMaxlength.from_dicts()
-    # Build and embed Starter Index (cap + mask) for fastest runtime
-    active_dicts = [
-        dictionaries.st_characters[0], dictionaries.st_phrases[0],
-        dictionaries.ts_characters[0], dictionaries.ts_phrases[0],
-        dictionaries.tw_phrases[0], dictionaries.tw_phrases_rev[0],
-        dictionaries.tw_variants[0], dictionaries.tw_variants_rev[0],
-        dictionaries.tw_variants_rev_phrases[0],
-        dictionaries.hk_variants[0], dictionaries.hk_variants_rev[0],
-        dictionaries.hk_variants_rev_phrases[0],
-        dictionaries.jps_characters[0], dictionaries.jps_phrases[0],
-        dictionaries.jp_variants[0], dictionaries.jp_variants_rev[0],
-    ]
-    global_cap = max((len(k) for d in active_dicts for k in d.keys()), default=1)
-    idx = StarterIndex.build(active_dicts, global_cap)
-    # Attach the index so serialize_to_json() embeds it under 'starter_index'
-    dictionaries.inject_starter_index(idx)
 
     if args.format == "json":
-        # Serialize dictionary to JSON file
-        dictionaries.serialize_to_json(output_file_path)
+        # pretty = not compact
+        dictionaries.serialize_to_json(output_file_path, pretty=not args.compact)
         print(f"{BLUE}Dictionary saved in JSON format at: {output_file_path}{RESET}")
 
     return 0

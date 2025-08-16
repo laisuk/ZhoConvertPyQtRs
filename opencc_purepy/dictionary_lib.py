@@ -157,7 +157,7 @@ class DictionaryMaxlength:
 
         return dictionary, max_length
 
-    def serialize_to_json(self, path: str) -> None:
+    def serialize_to_json(self, path: str, pretty: bool = False) -> None:
         """
         Serialize the current dictionary set to a stable JSON format.
 
@@ -177,7 +177,8 @@ class DictionaryMaxlength:
         Notes
         -----
         - `max_length` values are plain integers.
-        - Output is compact (no pretty-print), UTF-8, with non-ASCII preserved.
+        - Output is UTF-8 with non-ASCII preserved.
+        - By default output is compact; set `pretty=True` for human-readable formatting.
         """
         import json
         from pathlib import Path
@@ -196,4 +197,7 @@ class DictionaryMaxlength:
             p.parent.mkdir(parents=True, exist_ok=True)
 
         with p.open("w", encoding="utf-8") as f:
-            json.dump(out, f, ensure_ascii=False, separators=(",", ":"))
+            if pretty:
+                json.dump(out, f, ensure_ascii=False, indent=2)
+            else:
+                json.dump(out, f, ensure_ascii=False, separators=(",", ":"))
