@@ -1,7 +1,5 @@
 from dataclasses import dataclass
-from typing import Tuple, Dict, Any, Union, List, Optional
-
-from opencc_purepy.starter_union import StarterUnion
+from typing import Tuple, Dict, Any, Union, List, Optional, Callable
 
 DictSlot = Tuple[Dict[str, str], int]
 StarterUnion = Any  # type: ignore
@@ -94,50 +92,96 @@ class DictRefs:
         return norm
 
     # ----- Application -----
-    def apply_segment_replace(self, input_text: str, segment_replace) -> str:
-        """
-        Apply segment-based replacement across up to three rounds.
 
-        Parameters
-        ----------
-        input_text : str
-            The string to transform.
-        segment_replace : callable
-            Signature: segment_replace(text: str, dictionaries: List[DictSlot], max_word_length: int) -> str
+    def apply_segment_replace(
+            self,
+            input_text: str,
+            *,
+            segment_replace: Optional[Callable[[str, List[DictSlot], int], str]] = None,
+            union_replace: Optional[Callable[[str, "StarterUnion"], str]] = None,  # e.g. opencc.convert_union
+    ) -> str:
         """
-        (r1_slots, r1_cap), (r2_slots, r2_cap), (r3_slots, r3_cap) = self._normalize()
+        Unified 3-round apply. You can pass:
+          - segment_replace=opencc.segment_replace (legacy driver), or
+          - segment_replace=opencc.convert_segment (direct core), or
+          - union_replace=opencc.convert_union (StarterUnion fast path),
+        or mix them; per round we pick the most natural path.
 
-        output = segment_replace(input_text, r1_slots, r1_cap)
-        if r2_slots:
-            output = segment_replace(output, r2_slots, r2_cap)
-        if r3_slots:
-            output = segment_replace(output, r3_slots, r3_cap)
-        return output
+        Behavior:
+          • If a round is a StarterUnion and union_replace exists → use it (ensure index built).
+          • Else normalize to (slots, cap) and:
+              - use segment_replace if provided, otherwise
+              - merge slots → StarterUnion and use union_replace if provided,
+              - otherwise skip the round (no delegate).
+        """
+        # lazy import to avoid cycles
+        try:
+            from .starter_union import StarterUnion  # type: ignore
+        except (TypeError, KeyError, ValueError):
+            StarterUnion = None  # type: ignore
 
-    def apply_union_replace(self, input_text: str, segment_replace_union) -> str:
-        """
-        Apply up to 3 rounds using StarterUnion fast path.
-        If a round is not a StarterUnion, it is merged into one on the fly.
-        """
-        # local import to avoid cycles if any
-        # try:
-        #     from .starter_union import StarterUnion
-        # except Exception:
-        #     StarterUnion = None  # type: ignore
+        def _is_union(obj) -> bool:
+            return bool(obj) and StarterUnion is not None and "StarterUnion" in str(type(obj))
+
+        def _ensure_index(_u):
+            if not getattr(_u, "_indexed", False):
+                build = getattr(_u, "build_starter_index", None)
+                if callable(build):
+                    build()
+
+        def _merge_to_union(_slots: List[DictSlot]):
+            if StarterUnion is None:
+                return None
+            merger = getattr(StarterUnion, "merge_precedence", None)
+            return merger(_slots) if callable(merger) else None
 
         text = input_text
         for r in (self.round_1, self.round_2, self.round_3):
             if not r:
                 continue
-            # Already a union?
-            if StarterUnion is not None and "StarterUnion" in str(type(r)):
+
+            # Native union + union delegate → fastest path
+            if _is_union(r) and union_replace is not None:
                 u = r
-            else:
-                # Normalize legacy inputs to a single union
+                _ensure_index(u)
+                text = union_replace(text, u)
+                continue
+
+            # Normalize to legacy slots/cap
+            try:
                 slots, cap = self._as_slots_and_cap(r)
-                u = StarterUnion.merge_precedence(slots)  # type: ignore
-            # Ensure masks/caps exist (no-op if already built)
-            if not getattr(u, "_indexed", False):
-                u.build_starter_index()
-            text = segment_replace_union(text, u)
+            except (TypeError, KeyError, ValueError):
+                # try to salvage if r looks like a union
+                if _is_union(r):
+                    to_slots = getattr(r, "to_slots", None)
+                    max_cap = getattr(r, "max_cap", 0)
+                    if callable(to_slots):
+                        slots: List[Tuple[dict, int]] = to_slots() if callable(to_slots) else []
+                        cap = int(max_cap) if max_cap else max((m for (_d, m) in slots), default=0)
+                    else:
+                        merged_map = getattr(r, "merged_map", None)
+                        max_cap = getattr(r, "max_cap", 0)
+                        if isinstance(merged_map, dict):
+                            slots = [(merged_map, int(max_cap) if max_cap else 0)]
+                            cap = int(max_cap) if max_cap else max((len(k) for k in merged_map), default=0)
+                        else:
+                            slots, cap = [], 0
+                else:
+                    slots, cap = [], 0
+
+            if not slots or cap <= 0:
+                continue
+
+            # Use legacy driver or direct core convert_segment
+            if segment_replace is not None:
+                text = segment_replace(text, slots, cap)
+                continue
+
+            # Or merge to union and use convert_union
+            if union_replace is not None:
+                u = _merge_to_union(slots)
+                if u is not None:
+                    _ensure_index(u)
+                    text = union_replace(text, u)
+
         return text
