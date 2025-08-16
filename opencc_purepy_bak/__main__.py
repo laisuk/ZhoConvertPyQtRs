@@ -7,7 +7,7 @@ from . import convert_cmd, dictgen_cmd, office_cmd
 
 def main():
     """
-    Main entry point for the opencc_purepy.bak command-line interface.
+    Main entry point for the opencc_purepy_bak command-line interface.
 
     Sets up argument parsing for subcommands:
       - convert: Convert text using OpenCC.
@@ -20,7 +20,7 @@ def main():
         int: Exit code from the invoked subcommand.
     """
     parser = argparse.ArgumentParser(
-        prog='opencc_purepy.bak',
+        prog='opencc_purepy_bak',
         description='Pure Python OpenCC CLI with multiple tools',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )

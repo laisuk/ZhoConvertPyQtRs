@@ -4,7 +4,7 @@ Command-line interface for OpenCC-based Office and EPUB document conversion.
 This script acts as the entry point for converting Office documents (.docx, .xlsx, .pptx, .odt, .ods, .odp)
 and EPUB files using the OpenCC conversion system, with support for punctuation conversion and font preservation.
 
-It uses `opencc_purepy.bak.OpenCC` and `convert_office_doc()` from `office_helper.py`.
+It uses `opencc_purepy_bak.OpenCC` and `convert_office_doc()` from `office_helper.py`.
 
 Author:
     Laisuk Lai (https://github.com/laisuk)

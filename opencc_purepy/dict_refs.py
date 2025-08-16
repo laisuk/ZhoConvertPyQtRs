@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Tuple, Dict, Any, Union, List, Optional, Callable
+import inspect
 
 DictSlot = Tuple[Dict[str, str], int]
 StarterUnion = Any  # type: ignore
@@ -9,6 +10,42 @@ RoundInput = Union[
     List[DictSlot],
     StarterUnion,
 ]
+
+
+def _check_delegates(
+        segment_replace: Optional[Callable],
+        union_replace: Optional[Callable],
+) -> None:
+    # segment_replace must accept (text, slots, cap)
+    if segment_replace is not None:
+        try:
+            params = inspect.signature(segment_replace).parameters
+            pos = [p for p in params.values()
+                   if p.kind in (p.POSITIONAL_ONLY, p.POSITIONAL_OR_KEYWORD)]
+            if len(pos) < 3:
+                raise TypeError(
+                    "segment_replace must accept (text:str, slots:List[DictSlot], cap:int). "
+                    "Did you pass convert_union/union_replace by mistake?"
+                )
+        except (TypeError, ValueError):
+            pass  # not introspectable: allow and let runtime raise
+
+    # union_replace must accept (text, union)
+    if union_replace is not None:
+        try:
+            params = inspect.signature(union_replace).parameters
+            pos = [p for p in params.values()
+                   if p.kind in (p.POSITIONAL_ONLY, p.POSITIONAL_OR_KEYWORD)]
+            if len(pos) < 2:
+                raise TypeError(
+                    "union_replace must accept (text:str, union:StarterUnion). "
+                    "Did you pass convert_segment/segment_replace by mistake?"
+                )
+        except (TypeError, ValueError):
+            pass
+
+    if segment_replace is not None and union_replace is not None and segment_replace is union_replace:
+        raise TypeError("segment_replace and union_replace refer to the same function; they must differ.")
 
 
 @dataclass
@@ -114,6 +151,8 @@ class DictRefs:
               - merge slots → StarterUnion and use union_replace if provided,
               - otherwise skip the round (no delegate).
         """
+        _check_delegates(segment_replace, union_replace)
+
         # lazy import to avoid cycles
         try:
             from .starter_union import StarterUnion  # type: ignore
