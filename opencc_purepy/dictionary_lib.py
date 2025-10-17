@@ -1,6 +1,6 @@
 import warnings
 from pathlib import Path
-from typing import Dict, Tuple, Tuple as Tup
+from typing import Dict, Tuple, Tuple as Tup  # type checking
 
 
 class DictionaryMaxlength:
@@ -201,3 +201,4 @@ class DictionaryMaxlength:
                 json.dump(out, f, ensure_ascii=False, indent=2)
             else:
                 json.dump(out, f, ensure_ascii=False, separators=(",", ":"))
+
